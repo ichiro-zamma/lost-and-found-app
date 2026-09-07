@@ -39,3 +39,16 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/src/generated/prisma
+
+
+.agents/
+.claude/
+.windsurf/
+skills-lock.json
+
+# .agents/	AIコーディングエージェント向けの補助ファイル置き場	このアプリの動作には一切関係ない、Prisma CLIが自動生成した付随物
+# .claude/	Claude Code向けのスキル定義ファイル置き場	同上。特定のAIツールの設定であり、アプリのソースコードではない
+# .windsurf/	Windsurf(別のAIコーディングツール)向けの設定ファイル置き場	同上
+# skills-lock.json	上記スキルファイル群のバージョン管理用ロックファイル	上記3つのフォルダに対応するロックファイルなので、フォルダ自体を除外するなら一緒に除外するのが自然
