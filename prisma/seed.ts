@@ -7,6 +7,7 @@ const prisma = new PrismaClient({ adapter })
 
 async function main() {
   // 既存データを削除(子テーブル → 親テーブルの順)
+  //外部キー制約があるテーブルは、参照している側(子)から先に消さないとエラーになるためこの順番。
   await prisma.match.deleteMany()
   await prisma.lostItem.deleteMany()
   await prisma.foundItem.deleteMany()
@@ -16,6 +17,7 @@ async function main() {
   await prisma.color.deleteMany()
   await prisma.location.deleteMany()
 
+  //マスタデータの一括登録
   // マスタデータ: カテゴリ
   await prisma.category.createMany({
     data: [
@@ -88,14 +90,36 @@ async function main() {
     ],
   })
 
-  // 施設(最低限1件)
-  await prisma.facility.create({
-    data: { facilityName: '渋谷駅忘れ物センター', address: '東京都渋谷区渋谷2-24' },
-  })
+// テストユーザー(認証機能実装前の動作確認用)
+const testUser = await prisma.user.create({
+  data: {
+    name: '山田太郎',
+    email: 'taro@example.com',
+    password: 'dummy-hashed-password',
+    role: 'USER',
+  },
+})
 
-  console.log('Seed data created successfully')
+// 施設(最低限1件)
+const facility = await prisma.facility.create({
+  data: { facilityName: '渋谷駅忘れ物センター', address: '東京都渋谷区渋谷2-24' },
+})
+
+// テスト用の施設管理者(認証機能実装前の動作確認用)
+await prisma.user.create({
+  data: {
+    name: '管理者(渋谷駅)',
+    email: 'admin-shibuya@example.com',
+    password: 'dummy-hashed-password-admin',
+    role: 'ADMIN',
+    facilityId: facility.id, // これで facility が見つかる
+  },
+})
+
+console.log('Seed data created successfully')
 }
 
+//main()の実行と、エラー処理
 main()
   .catch((e) => {
     console.error(e)
@@ -103,4 +127,6 @@ main()
   })
   .finally(async () => {
     await prisma.$disconnect()
+    //prisma.$disconnect()(DBとの接続を閉じる)
   })
+  
