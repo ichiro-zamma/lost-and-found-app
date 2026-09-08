@@ -15,14 +15,14 @@ datasource db {
 //値の範囲チェックをPrismaの標準機能(enum)で型安全に実装するため
 
 enum Role {
-  U // 一般ユーザー(落とした人/拾った人兼用)
-  A // 施設管理者
+  USER  // 一般ユーザー(落とした人/拾った人兼用)
+  ADMIN // 施設管理者
 }
 
 enum ItemStatus {
-  U // 未マッチング
-  C // 確認中
-  R // 返却済み
+  UNMATCHED  // 未マッチング
+  CONFIRMING // 確認中
+  RETURNED   // 返却済み
 }
 
 model User {
@@ -30,7 +30,7 @@ model User {
   name         String?   @db.VarChar(50)
   email        String    @unique @db.VarChar(255)
   password     String    @db.VarChar(255)
-  role         Role      @default(U)
+  role         Role      @default(USER)
   facilityId   Int?      @map("facility_id")
   facility     Facility? @relation(fields: [facilityId], references: [id])
   createdAt    DateTime  @default(now()) @map("created_at")
@@ -98,7 +98,7 @@ model LostItem {
   locationDetail String?    @map("location_detail") @db.VarChar(100)
   lostAt         DateTime   @map("lost_at")
   secretInfo     String     @map("secret_info") @db.VarChar(200)
-  status         ItemStatus @default(U)
+  status         ItemStatus @default(UNMATCHED)
   createdAt      DateTime   @default(now()) @map("created_at")
 
   match Match?
@@ -120,7 +120,7 @@ model FoundItem {
   foundAt        DateTime   @map("found_at")
   facilityId     Int?       @map("facility_id")
   facility       Facility?  @relation(fields: [facilityId], references: [id])
-  status         ItemStatus @default(U)
+  status         ItemStatus @default(UNMATCHED)
   createdAt      DateTime   @default(now()) @map("created_at")
 
   match Match?
