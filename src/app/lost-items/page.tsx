@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
+import { formatDateTime } from '@/lib/format'
 
 const STATUS_LABEL: Record<string, string> = {
   UNMATCHED: '未マッチング',
@@ -55,9 +56,11 @@ export default async function LostItemsPage() {
                   {lostItem.location.locationName}
                   {lostItem.locationDetail && `(${lostItem.locationDetail})`}
                 </td>
+
                 <td className="border border-gray-300 px-4 py-2">
-                  {lostItem.lostAt.toLocaleString('ja-JP')}
+                     {formatDateTime(lostItem.lostAt)}  
                 </td>
+            
                 <td className="border border-gray-300 px-4 py-2">
                   {STATUS_LABEL[lostItem.status]}
                 </td>
