@@ -47,3 +47,4 @@ bash
 pnpm exec prisma studio --port 5555
 
 これでdevcontainer.jsonですでに転送設定してある5555が使われるので、毎回http://localhost:5555で確実にアクセスできる
+
