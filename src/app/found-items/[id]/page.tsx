@@ -4,10 +4,10 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { formatDateTime } from '@/lib/format'
 import { STATUS_LABEL } from '@/lib/labels'//日本語の文字に変換
+import { assignFacility } from '@/lib/actions/found-items'//拾得物詳細画面に「施設を設定」フォームを追加
 
 // const STATUS_LABEL: Record<string, string> = {
 //   UNMATCHED: '未マッチング',
-//   CONFIRMING: '確認中',
 //   RETURNED: '返却済み',
 // }
 
@@ -31,6 +31,9 @@ export default async function FoundItemDetailPage({ params }: Props) {
 
   if (!foundItem) notFound()
     // 該当データが無ければ404
+
+   const facilities = await prisma.facility.findMany({ orderBy: { id: 'asc' } })
+   //施設(facilities)のマスタデータを全部、登録順に取得する
 
   return (
     <div className="p-8 max-w-2xl">
@@ -85,6 +88,24 @@ export default async function FoundItemDetailPage({ params }: Props) {
           </tr>
         </tbody>
       </table>
+      {!foundItem.facility && (
+        <div className="mt-6 border-t pt-4">
+          <h2 className="text-lg font-semibold mb-3">保管施設を設定(管理者用)</h2>
+          <form action={assignFacility.bind(null, foundItem.id)} className="flex gap-2">
+            <select name="facilityId" required className="border border-gray-300 rounded px-3 py-2 text-sm">
+              <option value="">施設を選択</option>
+              {facilities.map((facility) => (
+                <option key={facility.id} value={facility.id}>
+                  {facility.facilityName}
+                </option>
+              ))}
+            </select>
+            <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">
+              設定する
+            </button>
+          </form>
+        </div>
+      )}
     </div>
   )
 }

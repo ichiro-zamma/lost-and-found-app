@@ -8,7 +8,6 @@ import { STATUS_LABEL } from '@/lib/labels'//日本語の文字に変換
 //     // enumの値(英単語)を、日本語の表示名に変換するための対応表
 //     // Record<string, string> = 「キーも値も文字列であるオブジェクト」という型
 //   UNMATCHED: '未マッチング',
-//   CONFIRMING: '確認中',
 //   RETURNED: '返却済み',
 // }
 

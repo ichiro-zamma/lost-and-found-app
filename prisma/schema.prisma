@@ -21,7 +21,6 @@ enum Role {
 
 enum ItemStatus {
   UNMATCHED  // 未マッチング
-  CONFIRMING // 確認中
   RETURNED   // 返却済み
 }
 

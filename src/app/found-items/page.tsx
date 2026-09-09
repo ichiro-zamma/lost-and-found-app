@@ -6,7 +6,6 @@ import { STATUS_LABEL } from '@/lib/labels'//日本語の文字に変換
 
 // const STATUS_LABEL: Record<string, string> = {
 //   UNMATCHED: '未マッチング',
-//   CONFIRMING: '確認中',
 //   RETURNED: '返却済み',
 // }
 

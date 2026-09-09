@@ -5,11 +5,11 @@ import { notFound } from 'next/navigation' // 404ページを表示するため�
 import Link from 'next/link' // ページ遷移用リンク
 import { formatDateTime } from '@/lib/format' // 日時整形関数
 import { STATUS_LABEL } from '@/lib/labels'//日本語の文字に変換
+import { confirmReturn } from '@/lib/actions/matches'//「確定・返却」ボタンを追加
 
 // const STATUS_LABEL: Record<string, string> = {
 //      // ステータスのenum値を日本語に変換する辞書
 //   UNMATCHED: '未マッチング',
-//   CONFIRMING: '確認中',
 //   RETURNED: '返却済み',
 // }
 
@@ -144,6 +144,18 @@ export default async function LostItemDetailPage({ params }: Props) {
                 <p className="text-sm text-gray-700">
                   保管施設: {foundItem.facility ? foundItem.facility.facilityName : '未定(まだ施設に届いていません)'}
                 </p>
+                  {foundItem.facility && (
+                  <form action={confirmReturn} className="mt-3">
+                    <input type="hidden" name="lostItemId" value={lostItem.id} />
+                    <input type="hidden" name="foundItemId" value={foundItem.id} />
+                    <button
+                      type="submit"
+                      className="bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700"
+                    >
+                      本人確認完了・返却済みにする(管理者用)
+                    </button>
+                  </form>
+                )}
               </li>
             ))}
           </ul>
