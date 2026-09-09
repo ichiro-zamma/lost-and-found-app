@@ -1,3 +1,4 @@
+//拾得物詳細画面
 import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
@@ -22,12 +23,13 @@ export default async function FoundItemDetailPage({ params }: Props) {
       category: true,
       color: true,
       location: true,
-      facility: true,
+      facility: true,// 保管施設の情報。この画面では表示する必要があるので取得している
       user: true,
     },
   })
 
   if (!foundItem) notFound()
+    // 該当データが無ければ404
 
   return (
     <div className="p-8 max-w-2xl">

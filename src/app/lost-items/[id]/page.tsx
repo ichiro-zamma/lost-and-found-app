@@ -1,10 +1,12 @@
-import { prisma } from '@/lib/prisma'
-import { calculateMatchScore } from '@/lib/matching'
-import { notFound } from 'next/navigation'
-import Link from 'next/link'
-import { formatDateTime } from '@/lib/format'
+//落とし物詳細画面
+import { prisma } from '@/lib/prisma' // DB操作用の窓口
+import { calculateMatchScore } from '@/lib/matching' // マッチングスコア計算関数
+import { notFound } from 'next/navigation' // 404ページを表示するための関数
+import Link from 'next/link' // ページ遷移用リンク
+import { formatDateTime } from '@/lib/format' // 日時整形関数
 
 const STATUS_LABEL: Record<string, string> = {
+     // ステータスのenum値を日本語に変換する辞書
   UNMATCHED: '未マッチング',
   CONFIRMING: '確認中',
   RETURNED: '返却済み',
@@ -12,31 +14,41 @@ const STATUS_LABEL: Record<string, string> = {
 
 type Props = {
   params: Promise<{ id: string }>
+  // このページに渡ってくるURLパラメータの型定義
+  // 例: /lost-items/5 にアクセスすると { id: "5" } が渡ってくる
 }
 
 export default async function LostItemDetailPage({ params }: Props) {
+    // Propsからparamsだけを取り出して使う(分割代入)
   const { id } = await params
-
+  // paramsはPromiseなのでawaitで中身を取り出す。idという文字列(例:"5")が手に入る
   const lostItem = await prisma.lostItem.findUnique({
+     // lost_itemsテーブルから、主キーで1件だけ検索する
     where: { id: Number(id) },
+    // URLの id は文字列("5")なので、Number()で数値(5)に変換してから検索条件に使う
     include: {
-      category: true,
-      color: true,
-      location: true,
-      user: true,
+        //includeがあると、IDを手がかりにして、そのIDが指す先の詳細な情報(名前など)まで、まとめて取得できる
+      category: true,// カテゴリ名を一緒に取得
+      color: true,// 色名を一緒に取得
+      location: true,// 場所名を一緒に取得
+      user: true,// 登録者(利用者)の情報を一緒に取得
     },
   })
 
   if (!lostItem) notFound()
+    // もし該当するデータが無かった(findUniqueがnullを返した)場合、404ページを表示して処理を止める
 
   // マッチング候補: まだ返却済みでない拾得物を全件取得し、その場でスコアを計算する
   const foundItems = await prisma.foundItem.findMany({
+    // found_itemsテーブルから複数件取得する
     where: { status: { not: 'RETURNED' } },
+    // ステータスがRETURNED(返却済み)でないものだけに絞り込む
+    // { not: '...' } はPrismaの「等しくない」という条件の書き方
     include: {
       category: true,
       color: true,
       location: true,
-      facility: true,
+      facility: true, // 保管施設の情報も一緒に取得(あれば)
     },
   })
 
@@ -44,9 +56,17 @@ export default async function LostItemDetailPage({ params }: Props) {
     .map((foundItem) => ({
       foundItem,
       score: calculateMatchScore(lostItem, foundItem),
+      // 取得した拾得物1件ずつに対して、今表示している落とし物とのスコアを計算し、
+      // { foundItem: (元のデータ), score: (計算結果) } という新しいオブジェクトの配列に変換する
     }))
-    .filter((candidate) => candidate.score > 0) // 少しでも一致点があるものだけ表示
+    .filter((candidate) => candidate.score > 0) 
+    // スコアが0点(何も一致点がない)ものは、配列から除外する
+    // 少しでも一致点があるものだけ表示
+
     .sort((a, b) => b.score - a.score)
+    // スコアが高い順に並び替える
+    // sortの比較関数: 戻り値がマイナスならaが先、プラスならbが先になる
+    // b.score - a.score にすることで、大きい方(高スコア)が先頭に来る(降順)
 
   return (
     <div className="p-8 max-w-2xl">

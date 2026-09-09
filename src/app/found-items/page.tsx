@@ -1,3 +1,4 @@
+//拾得物一覧画面
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import { formatDateTime } from '@/lib/format'
@@ -10,11 +11,13 @@ const STATUS_LABEL: Record<string, string> = {
 
 export default async function FoundItemsPage() {
   const foundItems = await prisma.foundItem.findMany({
+     // found_itemsテーブルから複数件取得
     include: {
       category: true,
       color: true,
       location: true,
-      facility: true,
+      facility: true,// 落とし物には無かった項目。保管施設の情報も一緒に取得
+                     // facilityはリレーションが任意(?)なので、無ければnullが入る
     },
     orderBy: { createdAt: 'desc' },
   })

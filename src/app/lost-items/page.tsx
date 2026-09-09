@@ -1,21 +1,28 @@
-import { prisma } from '@/lib/prisma'
-import Link from 'next/link'
-import { formatDateTime } from '@/lib/format'
+//落とし物一覧
+import { prisma } from '@/lib/prisma' // DB操作用の窓口(シングルトン)を持ってくる
+import Link from 'next/link' // ページ遷移用のリンクコンポーネント
+import { formatDateTime } from '@/lib/format' // 自作した日時整形関数
 
 const STATUS_LABEL: Record<string, string> = {
+    // enumの値(英単語)を、日本語の表示名に変換するための対応表
+    // Record<string, string> = 「キーも値も文字列であるオブジェクト」という型
   UNMATCHED: '未マッチング',
   CONFIRMING: '確認中',
   RETURNED: '返却済み',
 }
 
 export default async function LostItemsPage() {
+    // 一覧画面のServer Component本体
   const lostItems = await prisma.lostItem.findMany({
-    include: {
-      category: true,
-      color: true,
-      location: true,
+    // lost_itemsテーブルから複数件取得する
+   include: {
+    //includeがあると、IDを手がかりにして、そのIDが指す先の詳細な情報(名前など)まで、まとめて取得できる
+      category: true, // カテゴリ名などを一緒に取ってくる
+      color: true,    // 色名などを一緒に取ってくる
+      location: true,  // 場所名などを一緒に取ってくる
     },
     orderBy: { createdAt: 'desc' },
+    // 登録日時(createdAt)の新しい順(desc)に並べる
   })
 
   return (

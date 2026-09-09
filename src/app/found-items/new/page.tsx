@@ -1,3 +1,4 @@
+//拾得物登録画面
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
@@ -11,6 +12,7 @@ export default async function NewFoundItemPage() {
 
   async function createFoundItem(formData: FormData) {
     'use server'
+     // この関数もサーバー側で実行される、という宣言
 
     const categoryId = Number(formData.get('categoryId'))
     const colorId = Number(formData.get('colorId'))
@@ -24,6 +26,7 @@ export default async function NewFoundItemPage() {
     })
 
     const foundItem = await prisma.foundItem.create({
+        // found_itemsテーブルに新しい行を1件作成する
       data: {
         userId: testUser.id,
         categoryId,
@@ -32,10 +35,15 @@ export default async function NewFoundItemPage() {
         locationDetail: locationDetail || null,
         foundAt: new Date(foundAtRaw),
         // facilityId はここでは設定しない(まだ施設に届けていない状態)
+        // dataの中に facilityId を書いていない = 何も指定しない、という意味
+        // schema.prisma で facilityId は Int? (任意)なので、
+        // 指定しなければ自動的に NULL として保存される
+        // これにより「まだどの施設にも届いていない」状態を表現している
       },
     })
 
     redirect(`/found-items/${foundItem.id}/complete`)
+    // 登録が終わったら、詳細画面ではなく「完了画面」に遷移させる
   }
 
   return (

@@ -1,43 +1,72 @@
-import { prisma } from '@/lib/prisma'
-import { redirect } from 'next/navigation'
-import Link from 'next/link'
+//落とし物登録画面
+import { prisma } from '@/lib/prisma' // DB操作用の窓口(シングルトン)を持ってくる
+import { redirect } from 'next/navigation' // 処理後に別ページへ飛ばすための関数
+import Link from 'next/link'  // ページ遷移用のリンクコンポーネント
 
+// このページ自体がServer Component(asyncが付いているのでサーバー上でDBに直接アクセスできる)
 export default async function NewLostItemPage() {
   // マスタデータを取得(プルダウンの選択肢用)
   const [categories, colors, locations] = await Promise.all([
+    // Promise.all: 3つのDB問い合わせを同時に(並行して)実行し、全部終わるまで待つ
+    // 順番に1つずつawaitするより速い(3つの通信を同時に走らせるため)
     prisma.category.findMany({ orderBy: { id: 'asc' } }),
+    // categoriesテーブルを全件、id昇順で取得
     prisma.color.findMany({ orderBy: { id: 'asc' } }),
+    // colorsテーブルを全件、id昇順で取得
     prisma.location.findMany({ orderBy: { id: 'asc' } }),
+    // locationsテーブルを全件、id昇順で取得
   ])
+    // 分割代入により、結果が順番通りに categories, colors, locations という変数に入る
 
   async function createLostItem(formData: FormData) {
+    // フォーム送信時にサーバー側で実行される関数(Server Action)
+    // 引数のformDataには、ユーザーが入力したフォームの内容が全部入っている
     'use server'
+    // この関数はサーバー上で実行される、というNext.jsへの宣言
 
     const categoryId = Number(formData.get('categoryId'))
+    // formDataから"categoryId"という名前で送られてきた値を取り出し、文字列→数値に変換
     const colorId = Number(formData.get('colorId'))
+        // 同様に色のIDを取り出し数値化
     const locationId = Number(formData.get('locationId'))
+    // 同様に場所のIDを取り出し数値化
     const locationDetail = formData.get('locationDetail') as string
+    // 場所の詳細(自由記述)を文字列として取り出す
+    // "as string" はTypeScriptへの型の指定(FormDataの値は本来 string | File | null の可能性があるため)
+    //FormDataは、<form>タグで送信された内容を、ひとまとめに管理するJavaScriptの仕組みです。
     const lostAtRaw = formData.get('lostAt') as string
+    // 紛失日時を、まだ文字列のまま取り出す("Raw"=加工前、という意味を込めた変数名)
     const secretInfo = formData.get('secretInfo') as string
+    // 秘密情報を文字列として取り出す
 
     // TODO: 認証機能実装後、ログイン中のユーザーIDに置き換える
+    // ↑ 後で直す必要がある箇所だと分かるようにした目印コメント
     const testUser = await prisma.user.findUniqueOrThrow({
       where: { email: 'taro@example.com' },
     })
+    // usersテーブルから、メールアドレスが taro@example.com の人を検索
+    // findUniqueOrThrow: 見つからなければエラーを投げる(findUniqueとの違いはここ)
 
     const lostItem = await prisma.lostItem.create({
+        // lost_itemsテーブルに新しい行を1件作成する
       data: {
-        userId: testUser.id,
-        categoryId,
-        colorId,
-        locationId,
+        userId: testUser.id,  // 登録者は先ほど検索したテストユーザー
+        categoryId,           // カテゴリID(省略記法。categoryId: categoryId と同じ意味)
+        colorId,              // 色ID(同上)
+        locationId,           // 場所ID(同上)
         locationDetail: locationDetail || null,
+        // locationDetailが空文字("")なら null に変換して保存する
+        // (空文字のまま保存するより、"未入力"であることをNULLで表す方が自然なため)
         lostAt: new Date(lostAtRaw),
-        secretInfo,
+        // 文字列だった日時を、Dateオブジェクト(日時を扱うためのJavaScriptの型)に変換
+        secretInfo,// 秘密情報
       },
     })
 
     redirect(`/lost-items/${lostItem.id}`)
+    // 登録が終わったら、作成された落とし物の詳細ページへ強制的に画面遷移させる
+    // lostItem.id には、DBが自動採番したIDがここで初めて手に入る(createの戻り値だから)
+
   }
 
   return (

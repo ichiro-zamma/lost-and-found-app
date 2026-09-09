@@ -1,19 +1,30 @@
-import { prisma } from '@/lib/prisma'
-import { notFound } from 'next/navigation'
-import Link from 'next/link'
+//拾得物の登録完了画面
+import { prisma } from '@/lib/prisma' // DB操作用の窓口
+import { notFound } from 'next/navigation'  // 404ページ表示用の関数
+import Link from 'next/link' // ページ遷移用リンク
 
 type Props = {
   params: Promise<{ id: string }>
 }
 
 export default async function FoundItemCompletePage({ params }: Props) {
+    // 完了画面のServer Component本体
   const { id } = await params
+  // Promiseで渡ってきたparamsを待って、中身のidを取り出す
 
   const foundItem = await prisma.foundItem.findUnique({
+    // found_itemsテーブルから、主キーで1件だけ検索する
     where: { id: Number(id) },
+    // idは文字列("5")なので、Number()で数値に変換してから検索条件に使う
+
+  // 注目ポイント: ここには include が付いていない
+  // 詳細画面(page.tsx)では category や color も一緒に取得していたが、
+  // この完了画面では、そもそもカテゴリ名や色を表示する予定がないため、
+  // 必要最低限(foundItem自体の存在確認)だけで済ませている
   })
 
   if (!foundItem) notFound()
+    // 該当する拾得物が存在しなければ404ページを表示
 
   return (
     <div className="p-8 max-w-xl text-center">
