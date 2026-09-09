@@ -4,13 +4,14 @@ import { calculateMatchScore } from '@/lib/matching' // マッチングスコア
 import { notFound } from 'next/navigation' // 404ページを表示するための関数
 import Link from 'next/link' // ページ遷移用リンク
 import { formatDateTime } from '@/lib/format' // 日時整形関数
+import { STATUS_LABEL } from '@/lib/labels'//日本語の文字に変換
 
-const STATUS_LABEL: Record<string, string> = {
-     // ステータスのenum値を日本語に変換する辞書
-  UNMATCHED: '未マッチング',
-  CONFIRMING: '確認中',
-  RETURNED: '返却済み',
-}
+// const STATUS_LABEL: Record<string, string> = {
+//      // ステータスのenum値を日本語に変換する辞書
+//   UNMATCHED: '未マッチング',
+//   CONFIRMING: '確認中',
+//   RETURNED: '返却済み',
+// }
 
 type Props = {
   params: Promise<{ id: string }>

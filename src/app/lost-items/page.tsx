@@ -2,14 +2,15 @@
 import { prisma } from '@/lib/prisma' // DB操作用の窓口(シングルトン)を持ってくる
 import Link from 'next/link' // ページ遷移用のリンクコンポーネント
 import { formatDateTime } from '@/lib/format' // 自作した日時整形関数
+import { STATUS_LABEL } from '@/lib/labels'//日本語の文字に変換
 
-const STATUS_LABEL: Record<string, string> = {
-    // enumの値(英単語)を、日本語の表示名に変換するための対応表
-    // Record<string, string> = 「キーも値も文字列であるオブジェクト」という型
-  UNMATCHED: '未マッチング',
-  CONFIRMING: '確認中',
-  RETURNED: '返却済み',
-}
+// const STATUS_LABEL: Record<string, string> = {
+//     // enumの値(英単語)を、日本語の表示名に変換するための対応表
+//     // Record<string, string> = 「キーも値も文字列であるオブジェクト」という型
+//   UNMATCHED: '未マッチング',
+//   CONFIRMING: '確認中',
+//   RETURNED: '返却済み',
+// }
 
 export default async function LostItemsPage() {
     // 一覧画面のServer Component本体
