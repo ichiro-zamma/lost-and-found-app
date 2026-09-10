@@ -3,6 +3,14 @@ import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 
+// max属性の計算を、日本時間(JST)に補正する
+function getLocalDateTimeString(): string {
+  const now = new Date()
+  const jstOffsetMs = 9 * 60 * 60 * 1000 // 日本時間は常にUTCより9時間進んでいる
+  const jstTime = new Date(now.getTime() + jstOffsetMs)
+  return jstTime.toISOString().slice(0, 16)
+}
+
 export default async function NewFoundItemPage() {
   const [categories, colors, locations] = await Promise.all([
     prisma.category.findMany({ orderBy: { id: 'asc' } }),
@@ -19,6 +27,20 @@ export default async function NewFoundItemPage() {
     const locationId = Number(formData.get('locationId'))
     const locationDetail = formData.get('locationDetail') as string
     const foundAtRaw = formData.get('foundAt') as string
+    
+    // datetime-local は「何月何日の何時何分」という情報しか送らず、「それがどこの国の時間か」は送らない
+    //datetime-local の入力値にはタイムゾーン情報がない → サーバーがUTC環境 → 日本時間として扱いたいなら +09:00 を付ける。
+    //UTCより9時間進んだ地域
+    // "2026-09-10T15:29" という文字列に、日本時間であることを明示する "+09:00" を追加してからDateに変換する
+    const foundAt = new Date(`${foundAtRaw}:00+09:00`)
+    // JavaScriptが扱えるDate型に変換
+
+    // 未来の日時が入力されていないかチェック
+    if (foundAt.getTime() > Date.now()) {
+      throw new Error('拾得日時に未来の日時は指定できません')
+    }
+  //max属性(フロント側) = 「利用者が、カレンダーUI上で未来日時をうっかり選べないようにする」入力補助
+  //このコード(サーバー側) = 「万が一、max属性をすり抜けて未来日時が送られてきても、DBには絶対に保存させない」最終防衛ライン
 
     // TODO: 認証機能実装後、ログイン中のユーザーIDに置き換える
     const testUser = await prisma.user.findUniqueOrThrow({
@@ -118,6 +140,7 @@ export default async function NewFoundItemPage() {
             name="foundAt"
             type="datetime-local"
             required
+             max={getLocalDateTimeString()}
             className="border border-gray-300 rounded px-3 py-2 text-sm"
           />
         </div>

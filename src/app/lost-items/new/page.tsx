@@ -3,6 +3,14 @@ import { prisma } from '@/lib/prisma' // DB操作用の窓口(シングルトン
 import { redirect } from 'next/navigation' // 処理後に別ページへ飛ばすための関数
 import Link from 'next/link'  // ページ遷移用のリンクコンポーネント
 
+// max属性の計算を、日本時間(JST)に補正する
+function getLocalDateTimeString(): string {
+  const now = new Date()
+  const jstOffsetMs = 9 * 60 * 60 * 1000 // 日本時間は常にUTCより9時間進んでいる
+  const jstTime = new Date(now.getTime() + jstOffsetMs)
+  return jstTime.toISOString().slice(0, 16)
+}
+
 // このページ自体がServer Component(asyncが付いているのでサーバー上でDBに直接アクセスできる)
 export default async function NewLostItemPage() {
   // マスタデータを取得(プルダウンの選択肢用)
@@ -39,6 +47,18 @@ export default async function NewLostItemPage() {
     const secretInfo = formData.get('secretInfo') as string
     // 秘密情報を文字列として取り出す
 
+    // "2026-09-10T15:29" という文字列に、日本時間であることを明示する "+09:00" を追加してからDateに変換する
+    const lostAt = new Date(`${lostAtRaw}:00+09:00`)
+    //JavaScriptが扱えるDate型に変換
+
+  // 未来の日時が入力されていないかチェック
+  if (lostAt.getTime() > Date.now()) {
+    throw new Error('紛失日時に未来の日時は指定できません')
+  }
+
+  //max属性(フロント側) = 「利用者が、カレンダーUI上で未来日時をうっかり選べないようにする」入力補助
+  //このコード(サーバー側) = 「万が一、max属性をすり抜けて未来日時が送られてきても、DBには絶対に保存させない」最終防衛ライン
+
     // TODO: 認証機能実装後、ログイン中のユーザーIDに置き換える
     // ↑ 後で直す必要がある箇所だと分かるようにした目印コメント
     const testUser = await prisma.user.findUniqueOrThrow({
@@ -57,7 +77,7 @@ export default async function NewLostItemPage() {
         locationDetail: locationDetail || null,
         // locationDetailが空文字("")なら null に変換して保存する
         // (空文字のまま保存するより、"未入力"であることをNULLで表す方が自然なため)
-        lostAt: new Date(lostAtRaw),
+        lostAt,// ← new Date(lostAtRaw) ではなく、上で作った変数 lostAt を使う
         // 文字列だった日時を、Dateオブジェクト(日時を扱うためのJavaScriptの型)に変換
         secretInfo,// 秘密情報
       },
@@ -141,6 +161,7 @@ export default async function NewLostItemPage() {
             name="lostAt"
             type="datetime-local"
             required
+            max={getLocalDateTimeString()}
             className="border border-gray-300 rounded px-3 py-2 text-sm"
           />
         </div>
