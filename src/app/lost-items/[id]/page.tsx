@@ -105,7 +105,7 @@ export default async function LostItemDetailPage({ params }: Props) {
           <tr>
             <th className="border border-gray-300 px-4 py-2 bg-gray-50 text-left">登録者</th>
             <td className="border border-gray-300 px-4 py-2">
-              {lostItem.user.name ?? lostItem.user.email}
+              {lostItem.user.name }
             </td>
           </tr>
           <tr>

@@ -77,7 +77,7 @@ export default async function FoundItemDetailPage({ params }: Props) {
           <tr>
             <th className="border border-gray-300 px-4 py-2 bg-gray-50 text-left">登録者</th>
             <td className="border border-gray-300 px-4 py-2">
-              {foundItem.user.name ?? foundItem.user.email}
+              {foundItem.user.name}
             </td>
           </tr>
           <tr>
