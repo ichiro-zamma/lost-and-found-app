@@ -100,20 +100,84 @@ const testUser = await prisma.user.create({
   },
 })
 
-// 施設(最低限1件)
-const facility = await prisma.facility.create({
-  data: { facilityName: '渋谷駅忘れ物センター', address: '東京都渋谷区渋谷2-24' },
+// createMany() = マスタデータや施設など、まとめて登録したいとき
+// create() = 作ったデータのIDなどを、その後の処理で使いたいとき
+
+// 施設データを登録
+const shibuya = await prisma.facility.create({
+  data: {
+    facilityName: '渋谷駅忘れ物センター',
+    address: '東京都渋谷区渋谷2-24',
+  },
 })
 
-// テスト用の施設管理者(認証機能実装前の動作確認用)
-await prisma.user.create({
+const shinjuku = await prisma.facility.create({
   data: {
-    name: '管理者(渋谷駅)',
-    email: 'admin-shibuya@example.com',
-    password: 'dummy-hashed-password-admin',
-    role: 'ADMIN',
-    facilityId: facility.id, // これで facility が見つかる
+    facilityName: '新宿駅忘れ物センター',
+    address: '東京都新宿区新宿3-38-1',
   },
+})
+
+const ikebukuro = await prisma.facility.create({
+  data: {
+    facilityName: '池袋駅忘れ物センター',
+    address: '東京都豊島区南池袋1-28-2',
+  },
+})
+
+const tokyo = await prisma.facility.create({
+  data: {
+    facilityName: '東京駅忘れ物センター',
+    address: '東京都千代田区丸の内1-9-1',
+  },
+})
+
+const shinagawa = await prisma.facility.create({
+  data: {
+    facilityName: '品川駅忘れ物センター',
+    address: '東京都港区高輪3-26-27',
+  },
+})
+
+// 施設管理者を登録
+await prisma.user.createMany({
+  data: [
+    {
+      name: '管理者(渋谷駅)',
+      email: 'admin-shibuya@example.com',
+      password: 'dummy-hashed-password-admin',
+      role: 'ADMIN',
+      facilityId: shibuya.id,
+    },
+    {
+      name: '管理者(新宿駅)',
+      email: 'admin-shinjuku@example.com',
+      password: 'dummy-hashed-password-admin',
+      role: 'ADMIN',
+      facilityId: shinjuku.id,
+    },
+    {
+      name: '管理者(池袋駅)',
+      email: 'admin-ikebukuro@example.com',
+      password: 'dummy-hashed-password-admin',
+      role: 'ADMIN',
+      facilityId: ikebukuro.id,
+    },
+    {
+      name: '管理者(東京駅)',
+      email: 'admin-tokyo@example.com',
+      password: 'dummy-hashed-password-admin',
+      role: 'ADMIN',
+      facilityId: tokyo.id,
+    },
+    {
+      name: '管理者(品川駅)',
+      email: 'admin-shinagawa@example.com',
+      password: 'dummy-hashed-password-admin',
+      role: 'ADMIN',
+      facilityId: shinagawa.id,
+    },
+  ],
 })
 
 console.log('Seed data created successfully')
@@ -129,4 +193,3 @@ main()
     await prisma.$disconnect()
     //prisma.$disconnect()(DBとの接続を閉じる)
   })
-  
