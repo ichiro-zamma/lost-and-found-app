@@ -4,11 +4,19 @@
 
 import { prisma } from '@/lib/prisma'//Prismaを使ってデータベースを操作するためのprismaを読み込む
 import { revalidatePath } from 'next/cache'//指定したページのキャッシュを更新するための関数を読み込む
+import { getCurrentUser } from '@/lib/session'  
 
 export async function assignFacility(foundItemId: number, formData: FormData) {
     //拾得物に施設を割り当てるためのServer　Action
      // foundItemId → 施設を割り当てる拾得物のID
      // formData→ フォームから送られてきたデータ
+
+     // ↓ ここに追加(管理者チェック)
+  const currentUser = await getCurrentUser()
+  if (!currentUser || currentUser.role !== 'ADMIN') {
+    throw new Error('この操作には管理者権限が必要です')
+  }
+  
   const facilityId = Number(formData.get('facilityId'))
   //　フォームから「facilityId」を取得する
   // formData.get('facilityId') → フォームに入力されている施設IDを取得

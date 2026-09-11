@@ -5,6 +5,7 @@
 
 import { prisma } from '@/lib/prisma'//Prismaを使ってデータベースを操作するためのprismaを読み込む
 import { redirect } from 'next/navigation'//処理が終わったあと、別のページへ移動させるための関数
+import { getCurrentUser } from '@/lib/session' 
 
 export async function confirmReturn(formData: FormData) {
     // 返却確認を行う関数
@@ -17,6 +18,11 @@ export async function confirmReturn(formData: FormData) {
     //フォームから「foundItemId」を取得して数字に変換する
 
   // TODO: 認証機能実装後、role === 'ADMIN' のユーザーのみ実行できるようにする
+  // ↓ TODOコメントを、実際のチェックに置き換える
+  const currentUser = await getCurrentUser()
+  if (!currentUser || currentUser.role !== 'ADMIN') {
+    throw new Error('この操作には管理者権限が必要です')
+  }
 
   await prisma.$transaction([
      //複数のデータベース処理を「1つのまとまり」として実行する
