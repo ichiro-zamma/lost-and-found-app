@@ -127,6 +127,7 @@ export default async function LostItemDetailPage({ params }: Props) {
         </tbody>
       </table>
 
+    {lostItem.status !== 'RETURNED' && (
       <section>
         <h2 className="text-lg font-semibold mb-3">
           マッチング候補({candidates.length}件)
@@ -171,6 +172,7 @@ export default async function LostItemDetailPage({ params }: Props) {
           </ul>
         )}
       </section>
+      )}
 
        {currentUser?.role !== 'ADMIN' && (
          <p className="mt-4 text-xs text-gray-400">
