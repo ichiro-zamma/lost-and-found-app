@@ -27,7 +27,7 @@ export default async function FoundItemCompletePage({ params }: Props) {
     // 該当する拾得物が存在しなければ404ページを表示
 
   return (
-    <div className="p-8 max-w-xl text-center">
+    <div className="p-8 max-w-xl mx-auto text-center">
       <div className="text-4xl mb-4">🙏</div>
       <h1 className="text-2xl font-bold mb-2">ご協力ありがとうございます!</h1>
       <p className="text-gray-600 mb-6">

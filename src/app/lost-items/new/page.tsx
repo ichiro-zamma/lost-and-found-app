@@ -88,7 +88,7 @@ export default async function NewLostItemPage() {
     const lostItem = await prisma.lostItem.create({
         // lost_itemsテーブルに新しい行を1件作成する
       data: {
-        userId: currentUser.id,  // 登録者は先ほど検索したテストユーザー
+        userId: currentUser.id,  // 登録者は現在ログインしているユーザー
         categoryId,           // カテゴリID(省略記法。categoryId: categoryId と同じ意味)
         colorId,              // 色ID(同上)
         locationId,           // 場所ID(同上)

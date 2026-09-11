@@ -67,7 +67,7 @@ export default async function NewFoundItemPage() {
         colorId,
         locationId,
         locationDetail: locationDetail || null,
-        foundAt: new Date(foundAtRaw),
+        foundAt,
         // facilityId はここでは設定しない(まだ施設に届けていない状態)
         // dataの中に facilityId を書いていない = 何も指定しない、という意味
         // schema.prisma で facilityId は Int? (任意)なので、
