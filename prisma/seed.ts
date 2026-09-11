@@ -1,6 +1,7 @@
 import 'dotenv/config'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '@/generated/prisma/client'
+import bcrypt from 'bcryptjs'
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
 const prisma = new PrismaClient({ adapter })
@@ -95,7 +96,7 @@ const testUser = await prisma.user.create({
   data: {
     name: '山田太郎',
     email: 'taro@example.com',
-    password: 'dummy-hashed-password',
+    password: await bcrypt.hash('password123', 10), // 本物のハッシュに変更
     role: 'USER',
   },
 })
@@ -145,35 +146,35 @@ await prisma.user.createMany({
     {
       name: '管理者(渋谷駅)',
       email: 'admin-shibuya@example.com',
-      password: 'dummy-hashed-password-admin',
+      password: await bcrypt.hash('password123', 10), // 本物のハッシュに変更
       role: 'ADMIN',
       facilityId: shibuya.id,
     },
     {
       name: '管理者(新宿駅)',
       email: 'admin-shinjuku@example.com',
-      password: 'dummy-hashed-password-admin',
+      password: await bcrypt.hash('password123', 10), // 本物のハッシュに変更
       role: 'ADMIN',
       facilityId: shinjuku.id,
     },
     {
       name: '管理者(池袋駅)',
       email: 'admin-ikebukuro@example.com',
-      password: 'dummy-hashed-password-admin',
+      password: await bcrypt.hash('password123', 10), // 本物のハッシュに変更
       role: 'ADMIN',
       facilityId: ikebukuro.id,
     },
     {
       name: '管理者(東京駅)',
       email: 'admin-tokyo@example.com',
-      password: 'dummy-hashed-password-admin',
+      password: await bcrypt.hash('password123', 10), // 本物のハッシュに変更
       role: 'ADMIN',
       facilityId: tokyo.id,
     },
     {
       name: '管理者(品川駅)',
       email: 'admin-shinagawa@example.com',
-      password: 'dummy-hashed-password-admin',
+      password: await bcrypt.hash('password123', 10), // 本物のハッシュに変更
       role: 'ADMIN',
       facilityId: shinagawa.id,
     },
