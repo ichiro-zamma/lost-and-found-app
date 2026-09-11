@@ -108,7 +108,7 @@ export default async function NewLostItemPage() {
   }
 
   return (
-    <div className="p-8 max-w-xl">
+    <div className="p-8 mx-auto max-w-xl">
       <Link href="/lost-items" className="text-blue-600 hover:underline text-sm">
         ← 落とし物一覧に戻る
       </Link>

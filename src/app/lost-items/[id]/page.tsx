@@ -73,7 +73,7 @@ export default async function LostItemDetailPage({ params }: Props) {
     // b.score - a.score にすることで、大きい方(高スコア)が先頭に来る(降順)
 
   return (
-    <div className="p-8 max-w-2xl">
+    <div className="p-8 mx-auto  max-w-2xl">
       <Link href="/lost-items" className="text-blue-600 hover:underline text-sm">
         ← 落とし物一覧に戻る
       </Link>

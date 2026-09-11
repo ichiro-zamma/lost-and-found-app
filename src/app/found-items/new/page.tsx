@@ -81,7 +81,7 @@ export default async function NewFoundItemPage() {
   }
 
   return (
-    <div className="p-8 max-w-xl">
+    <div className="p-8 mx-auto  max-w-xl">
       <Link href="/found-items" className="text-blue-600 hover:underline text-sm">
         ← 拾得物一覧に戻る
       </Link>

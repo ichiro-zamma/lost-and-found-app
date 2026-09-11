@@ -38,7 +38,7 @@ export default async function FoundItemDetailPage({ params }: Props) {
 
    const currentUser = await getCurrentUser()
   return (
-    <div className="p-8 max-w-2xl">
+    <div className="p-8 mx-auto  max-w-2xl">
       <Link href="/found-items" className="text-blue-600 hover:underline text-sm">
         ← 拾得物一覧に戻る
       </Link>
