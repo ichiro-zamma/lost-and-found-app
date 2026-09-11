@@ -14,6 +14,15 @@ function getLocalDateTimeString(): string {
 
 // このページ自体がServer Component(asyncが付いているのでサーバー上でDBに直接アクセスできる)
 export default async function NewLostItemPage() {
+
+    //「このページを見るにはログインが必要」
+    // ↓ ここに追加(ページ全体のログインチェック)
+    //pageUser → ページを見るためのログイン確認
+  const pageUser = await getCurrentUser()
+  if (!pageUser) {
+    redirect('/login')
+  }
+
   // マスタデータを取得(プルダウンの選択肢用)
   const [categories, colors, locations] = await Promise.all([
     // Promise.all: 3つのDB問い合わせを同時に(並行して)実行し、全部終わるまで待つ
@@ -60,18 +69,26 @@ export default async function NewLostItemPage() {
   //max属性(フロント側) = 「利用者が、カレンダーUI上で未来日時をうっかり選べないようにする」入力補助
   //このコード(サーバー側) = 「万が一、max属性をすり抜けて未来日時が送られてきても、DBには絶対に保存させない」最終防衛ライン
 
-    // TODO: 認証機能実装後、ログイン中のユーザーIDに置き換える
-    // ↑ 後で直す必要がある箇所だと分かるようにした目印コメント
-    const testUser = await prisma.user.findUniqueOrThrow({
-      where: { email: 'taro@example.com' },
-    })
-    // usersテーブルから、メールアドレスが taro@example.com の人を検索
-    // findUniqueOrThrow: 見つからなければエラーを投げる(findUniqueとの違いはここ)
+    // // TODO: 認証機能実装後、ログイン中のユーザーIDに置き換える
+    // // ↑ 後で直す必要がある箇所だと分かるようにした目印コメント
+    // const testUser = await prisma.user.findUniqueOrThrow({
+    //   where: { email: 'taro@example.com' },
+    // })
+    // // usersテーブルから、メールアドレスが taro@example.com の人を検索
+    // // findUniqueOrThrow: 見つからなければエラーを投げる(findUniqueとの違いはここ)
+
+    //実際に落とし物を登録する瞬間にも、ログインしているか確認する
+    //currentUser → 登録処理をする人を特定するためのログイン確認
+    //安全のために必要　二重チェック＋登録者の特定
+    const currentUser = await getCurrentUser()
+          if (!currentUser) {
+      throw new Error('ログインが必要です')
+    }
 
     const lostItem = await prisma.lostItem.create({
         // lost_itemsテーブルに新しい行を1件作成する
       data: {
-        userId: testUser.id,  // 登録者は先ほど検索したテストユーザー
+        userId: currentUser.id,  // 登録者は先ほど検索したテストユーザー
         categoryId,           // カテゴリID(省略記法。categoryId: categoryId と同じ意味)
         colorId,              // 色ID(同上)
         locationId,           // 場所ID(同上)

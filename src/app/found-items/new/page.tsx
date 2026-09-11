@@ -2,6 +2,7 @@
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { getCurrentUser } from '@/lib/session'
 
 // max属性の計算を、日本時間(JST)に補正する
 function getLocalDateTimeString(): string {
@@ -12,6 +13,12 @@ function getLocalDateTimeString(): string {
 }
 
 export default async function NewFoundItemPage() {
+
+     // ↓ ここに追加(ページ全体のログインチェック)
+  const pageUser = await getCurrentUser()
+  if (!pageUser) {
+    redirect('/login')
+  }
   const [categories, colors, locations] = await Promise.all([
     prisma.category.findMany({ orderBy: { id: 'asc' } }),
     prisma.color.findMany({ orderBy: { id: 'asc' } }),
@@ -27,7 +34,7 @@ export default async function NewFoundItemPage() {
     const locationId = Number(formData.get('locationId'))
     const locationDetail = formData.get('locationDetail') as string
     const foundAtRaw = formData.get('foundAt') as string
-    
+
     // datetime-local は「何月何日の何時何分」という情報しか送らず、「それがどこの国の時間か」は送らない
     //datetime-local の入力値にはタイムゾーン情報がない → サーバーがUTC環境 → 日本時間として扱いたいなら +09:00 を付ける。
     //UTCより9時間進んだ地域
@@ -42,15 +49,20 @@ export default async function NewFoundItemPage() {
   //max属性(フロント側) = 「利用者が、カレンダーUI上で未来日時をうっかり選べないようにする」入力補助
   //このコード(サーバー側) = 「万が一、max属性をすり抜けて未来日時が送られてきても、DBには絶対に保存させない」最終防衛ライン
 
-    // TODO: 認証機能実装後、ログイン中のユーザーIDに置き換える
-    const testUser = await prisma.user.findUniqueOrThrow({
-      where: { email: 'taro@example.com' },
-    })
+    // // TODO: 認証機能実装後、ログイン中のユーザーIDに置き換える
+    // const testUser = await prisma.user.findUniqueOrThrow({
+    //   where: { email: 'taro@example.com' },
+    // })
+
+    const currentUser = await getCurrentUser()
+     if (!currentUser) {
+      throw new Error('ログインが必要です')
+     }
 
     const foundItem = await prisma.foundItem.create({
         // found_itemsテーブルに新しい行を1件作成する
       data: {
-        userId: testUser.id,
+        userId: currentUser.id,
         categoryId,
         colorId,
         locationId,
