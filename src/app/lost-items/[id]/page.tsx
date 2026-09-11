@@ -6,6 +6,7 @@ import Link from 'next/link' // ページ遷移用リンク
 import { formatDateTime } from '@/lib/format' // 日時整形関数
 import { STATUS_LABEL } from '@/lib/labels'//日本語の文字に変換
 import { confirmReturn } from '@/lib/actions/matches'//「確定・返却」ボタンを追加
+import { getCurrentUser } from '@/lib/session'
 
 // const STATUS_LABEL: Record<string, string> = {
 //      // ステータスのenum値を日本語に変換する辞書
@@ -38,6 +39,8 @@ export default async function LostItemDetailPage({ params }: Props) {
 
   if (!lostItem) notFound()
     // もし該当するデータが無かった(findUniqueがnullを返した)場合、404ページを表示して処理を止める
+
+  const currentUser = await getCurrentUser()
 
   // マッチング候補: まだ返却済みでない拾得物を全件取得し、その場でスコアを計算する
   const foundItems = await prisma.foundItem.findMany({
@@ -114,6 +117,13 @@ export default async function LostItemDetailPage({ params }: Props) {
               {STATUS_LABEL[lostItem.status]}
             </td>
           </tr>
+
+          {currentUser?.role === 'ADMIN' && (
+          <tr>
+            <th className="border border-gray-300 px-4 py-2 bg-gray-50 text-left">本人確認用の秘密情報</th>
+            <td className="border border-gray-300 px-4 py-2">{lostItem.secretInfo}</td>
+          </tr>
+        )}
         </tbody>
       </table>
 
@@ -162,9 +172,11 @@ export default async function LostItemDetailPage({ params }: Props) {
         )}
       </section>
 
-      <p className="mt-4 text-xs text-gray-400">
-        本人確認用の秘密情報は、施設管理者のみが照合時に確認します。この画面には表示していません。
-      </p>
+       {currentUser?.role !== 'ADMIN' && (
+         <p className="mt-4 text-xs text-gray-400">
+           本人確認用の秘密情報は、施設管理者のみが照合時に確認します。この画面には表示していません。
+         </p>
+        )}
     </div>
   )
 }

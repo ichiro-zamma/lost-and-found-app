@@ -2,6 +2,7 @@
 import { prisma } from '@/lib/prisma' // DB操作用の窓口(シングルトン)を持ってくる
 import { redirect } from 'next/navigation' // 処理後に別ページへ飛ばすための関数
 import Link from 'next/link'  // ページ遷移用のリンクコンポーネント
+import { getCurrentUser } from '@/lib/session'
 
 // max属性の計算を、日本時間(JST)に補正する
 function getLocalDateTimeString(): string {
