@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma' // DB操作用の窓口(シングルトン
 import Link from 'next/link' // ページ遷移用のリンクコンポーネント
 import { formatDateTime } from '@/lib/format' // 自作した日時整形関数
 import { STATUS_LABEL } from '@/lib/labels'//日本語の文字に変換
+import { getCurrentUser } from '@/lib/session'
 
 // const STATUS_LABEL: Record<string, string> = {
 //     // enumの値(英単語)を、日本語の表示名に変換するための対応表
@@ -24,17 +25,20 @@ export default async function LostItemsPage() {
     orderBy: { createdAt: 'desc' },
     // 登録日時(createdAt)の新しい順(desc)に並べる
   })
+  const currentUser = await getCurrentUser()
 
   return (
-    <div className="p-8">
+        <div className="p-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">落とし物一覧</h1>
-        <Link
-          href="/lost-items/new"
-          className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700"
-        >
-          新規登録
-        </Link>
+        {currentUser?.role !== 'ADMIN' && (
+          <Link
+            href="/lost-items/new"
+            className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700"
+          >
+            新規登録
+          </Link>
+        )}
       </div>
 
       {lostItems.length === 0 ? (

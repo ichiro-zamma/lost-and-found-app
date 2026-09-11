@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import { formatDateTime } from '@/lib/format'
 import { STATUS_LABEL } from '@/lib/labels'//日本語の文字に変換
-
+import { getCurrentUser } from '@/lib/session'
 // const STATUS_LABEL: Record<string, string> = {
 //   UNMATCHED: '未マッチング',
 //   RETURNED: '返却済み',
@@ -22,17 +22,22 @@ export default async function FoundItemsPage() {
     orderBy: { createdAt: 'desc' },
   })
 
+   const currentUser = await getCurrentUser()
+
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">拾得物一覧</h1>
-        <Link
-          href="/found-items/new"
-          className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700"
-        >
-          新規登録
-        </Link>
+        {currentUser?.role !== 'ADMIN' && (
+          <Link
+            href="/found-items/new"
+            className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700"
+          >
+            新規登録
+          </Link>
+        )}
       </div>
+
 
       {foundItems.length === 0 ? (
         <p className="text-gray-500">拾得物が登録されていません</p>
