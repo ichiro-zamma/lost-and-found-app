@@ -154,7 +154,7 @@ export default async function LostItemDetailPage({ params }: Props) {
                 <p className="text-sm text-gray-700">
                   保管施設: {foundItem.facility ? foundItem.facility.facilityName : '未定(まだ施設に届いていません)'}
                 </p>
-                  {foundItem.facility && (
+                {currentUser?.role === 'ADMIN' && foundItem.facility && (
                   <form action={confirmReturn} className="mt-3">
                     <input type="hidden" name="lostItemId" value={lostItem.id} />
                     <input type="hidden" name="foundItemId" value={foundItem.id} />
@@ -162,7 +162,7 @@ export default async function LostItemDetailPage({ params }: Props) {
                       type="submit"
                       className="bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700"
                     >
-                      本人確認完了・返却済みにする(管理者用)
+                      本人確認完了・返却済みにする
                     </button>
                   </form>
                 )}

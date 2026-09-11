@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { formatDateTime } from '@/lib/format'
 import { STATUS_LABEL } from '@/lib/labels'//日本語の文字に変換
 import { assignFacility } from '@/lib/actions/found-items'//拾得物詳細画面に「施設を設定」フォームを追加
+import { getCurrentUser } from '@/lib/session' 
 
 // const STATUS_LABEL: Record<string, string> = {
 //   UNMATCHED: '未マッチング',
@@ -35,6 +36,7 @@ export default async function FoundItemDetailPage({ params }: Props) {
    const facilities = await prisma.facility.findMany({ orderBy: { id: 'asc' } })
    //施設(facilities)のマスタデータを全部、登録順に取得する
 
+   const currentUser = await getCurrentUser()
   return (
     <div className="p-8 max-w-2xl">
       <Link href="/found-items" className="text-blue-600 hover:underline text-sm">
@@ -88,9 +90,9 @@ export default async function FoundItemDetailPage({ params }: Props) {
           </tr>
         </tbody>
       </table>
-      {!foundItem.facility && (
+     {currentUser?.role === 'ADMIN' && !foundItem.facility && (
         <div className="mt-6 border-t pt-4">
-          <h2 className="text-lg font-semibold mb-3">保管施設を設定(管理者用)</h2>
+          <h2 className="text-lg font-semibold mb-3">保管施設を設定</h2>
           <form action={assignFacility.bind(null, foundItem.id)} className="flex gap-2">
             <select name="facilityId" required className="border border-gray-300 rounded px-3 py-2 text-sm">
               <option value="">施設を選択</option>
