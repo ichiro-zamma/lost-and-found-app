@@ -4,6 +4,7 @@ import Link from 'next/link' // ページ遷移用のリンクコンポーネン
 import { formatDateTime } from '@/lib/format' // 自作した日時整形関数
 import { STATUS_LABEL } from '@/lib/labels'//日本語の文字に変換
 import { getCurrentUser } from '@/lib/session'
+import { redirect } from 'next/navigation'
 
 // const STATUS_LABEL: Record<string, string> = {
 //     // enumの値(英単語)を、日本語の表示名に変換するための対応表
@@ -14,8 +15,13 @@ import { getCurrentUser } from '@/lib/session'
 
 export default async function LostItemsPage() {
     // 一覧画面のServer Component本体
+const currentUser = await getCurrentUser()
+  if (!currentUser) {
+    redirect('/login')
+  }
   const lostItems = await prisma.lostItem.findMany({
     // lost_itemsテーブルから複数件取得する
+   where: currentUser.role === 'ADMIN' ? {} : { userId: currentUser.id }, 
    include: {
     //includeがあると、IDを手がかりにして、そのIDが指す先の詳細な情報(名前など)まで、まとめて取得できる
       category: true, // カテゴリ名などを一緒に取ってくる
@@ -25,8 +31,6 @@ export default async function LostItemsPage() {
     orderBy: { createdAt: 'desc' },
     // 登録日時(createdAt)の新しい順(desc)に並べる
   })
-  const currentUser = await getCurrentUser()
-
   return (
         <div className="p-8">
       <div className="flex items-center justify-between mb-6">
