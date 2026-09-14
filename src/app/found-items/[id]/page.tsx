@@ -6,6 +6,7 @@ import { formatDateTime } from '@/lib/format'
 import { STATUS_LABEL } from '@/lib/labels'//日本語の文字に変換
 import { assignFacility } from '@/lib/actions/found-items'//拾得物詳細画面に「施設を設定」フォームを追加
 import { getCurrentUser } from '@/lib/session' 
+import Image from 'next/image'
 
 // const STATUS_LABEL: Record<string, string> = {
 //   UNMATCHED: '未マッチング',
@@ -46,6 +47,17 @@ export default async function FoundItemDetailPage({ params }: Props) {
       <h1 className="text-2xl font-bold mt-4 mb-6">
         {foundItem.category.categoryName}の拾得物
       </h1>
+        {foundItem.imageUrl && (
+          <div className="w-80 h-80 mx-auto mb-6 overflow-hidden rounded border border-gray-300">
+            <Image
+              src={foundItem.imageUrl}
+              alt="拾得物の写真"
+              width={320}
+              height={320}
+              className="w-full h-full object-contain"
+            />
+          </div>
+        )}
 
       <table className="w-full border-collapse border border-gray-300 text-sm">
         <tbody>

@@ -97,6 +97,7 @@ model LostItem {
   locationDetail String?    @map("location_detail") @db.VarChar(100)
   lostAt         DateTime   @map("lost_at")
   secretInfo     String     @map("secret_info") @db.VarChar(200)
+  imageUrl       String?    @map("image_url") @db.VarChar(255)
   status         ItemStatus @default(UNMATCHED)
   createdAt      DateTime   @default(now()) @map("created_at")
 
@@ -117,6 +118,7 @@ model FoundItem {
   location       Location   @relation(fields: [locationId], references: [id])
   locationDetail String?    @map("location_detail") @db.VarChar(100)
   foundAt        DateTime   @map("found_at")
+  imageUrl       String?    @map("image_url") @db.VarChar(255)
   facilityId     Int?       @map("facility_id")
   facility       Facility?  @relation(fields: [facilityId], references: [id])
   status         ItemStatus @default(UNMATCHED)

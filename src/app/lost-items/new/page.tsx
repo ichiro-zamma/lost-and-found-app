@@ -3,11 +3,14 @@ import { prisma } from '@/lib/prisma' // DB操作用の窓口(シングルトン
 import { redirect } from 'next/navigation' // 処理後に別ページへ飛ばすための関数
 import Link from 'next/link'  // ページ遷移用のリンクコンポーネント
 import { getCurrentUser } from '@/lib/session'
+import { saveUploadedImage } from '@/lib/upload' //画像を保存するために作ったsaveUploadedImageという関数を入れている
 
 // max属性の計算を、日本時間(JST)に補正する
 function getLocalDateTimeString(): string {
   const now = new Date()
   const jstOffsetMs = 9 * 60 * 60 * 1000 // 日本時間は常にUTCより9時間進んでいる
+  //「9時間」をミリ秒に変換する計算
+  //なぜミリ秒にするの？//JavaScriptのDateでは、日時をミリ秒単位で扱うことが多いからです。　より細かい時間まで扱えるようにするため
   const jstTime = new Date(now.getTime() + jstOffsetMs)
   return jstTime.toISOString().slice(0, 16)
 }
@@ -85,6 +88,12 @@ export default async function NewLostItemPage() {
       throw new Error('ログインが必要です')
     }
 
+    //ユーザーが選んだ画像を取り出して、保存する」処理    
+    const imageFile = formData.get('image') as File | null
+    // フォームから「image」という名前のデータを取り出す
+    const imageUrl = await saveUploadedImage(imageFile)
+    //取り出した画像をsaveUploadedImageに渡して保存する
+
     const lostItem = await prisma.lostItem.create({
         // lost_itemsテーブルに新しい行を1件作成する
       data: {
@@ -98,6 +107,7 @@ export default async function NewLostItemPage() {
         lostAt,// ← new Date(lostAtRaw) ではなく、上で作った変数 lostAt を使う
         // 文字列だった日時を、Dateオブジェクト(日時を扱うためのJavaScriptの型)に変換
         secretInfo,// 秘密情報
+        imageUrl,  //保存した画像の場所を、落とし物データと一緒にDBへ保存する
       },
     })
 
@@ -195,6 +205,22 @@ export default async function NewLostItemPage() {
             rows={3}
           />
         </div>
+
+
+<div className="flex flex-col gap-1">
+  <label className="text-sm font-medium">
+    写真<span className="text-gray-400"/>
+  </label>
+  <input
+    name="image"
+    type="file"
+    accept="image/*"
+    className="text-sm border border-gray-300 rounded px-3 py-2 file:mr-3 file:px-3 file:py-1 file:rounded file:border-0 file:bg-blue-50 file:text-blue-700 file:text-sm file:font-medium hover:file:bg-blue-100"
+  />
+  <p className="text-xs text-gray-400 mt-1">
+    ※ 財布や鞄を開いた状態、中身が写った写真は登録しないようにしてください。
+  </p>
+</div>
 
         <div className="flex gap-3 mt-2">
           <button

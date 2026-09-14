@@ -7,6 +7,7 @@ import { formatDateTime } from '@/lib/format' // 日時整形関数
 import { STATUS_LABEL } from '@/lib/labels'//日本語の文字に変換
 import { confirmReturn } from '@/lib/actions/matches'//「確定・返却」ボタンを追加
 import { getCurrentUser } from '@/lib/session'
+import Image from 'next/image'//Next.jsの画像表示用のImageを使えるようにするため　Imageを使うことで画像の最適化などをNext.js側に任せられる
 
 // const STATUS_LABEL: Record<string, string> = {
 //      // ステータスのenum値を日本語に変換する辞書
@@ -45,9 +46,12 @@ export default async function LostItemDetailPage({ params }: Props) {
   // マッチング候補: まだ返却済みでない拾得物を全件取得し、その場でスコアを計算する
   const foundItems = await prisma.foundItem.findMany({
     // found_itemsテーブルから複数件取得する
-    where: { status: { not: 'RETURNED' } },
+    where: { status: { not: 'RETURNED' },
     // ステータスがRETURNED(返却済み)でないものだけに絞り込む
     // { not: '...' } はPrismaの「等しくない」という条件の書き方
+    categoryId: lostItem.categoryId,
+    //拾得物のcategoryIdが、現在見ている落とし物のcategoryIdと同じものだけ取得して
+    },
     include: {
       category: true,
       color: true,
@@ -81,6 +85,17 @@ export default async function LostItemDetailPage({ params }: Props) {
       <h1 className="text-2xl font-bold mt-4 mb-6">
         {lostItem.category.categoryName}の落とし物
       </h1>
+         {lostItem.imageUrl && (
+  <div className="w-80 h-80 mx-auto mb-6 overflow-hidden rounded border border-gray-300">
+    <Image
+      src={lostItem.imageUrl}
+      alt="落とし物の写真"
+      width={320}
+      height={320}
+      className="w-full h-full object-contain"
+    />
+  </div>
+)}
 
       <table className="w-full border-collapse border border-gray-300 text-sm mb-8">
         <tbody>
@@ -144,7 +159,21 @@ export default async function LostItemDetailPage({ params }: Props) {
                     {foundItem.category.categoryName} / {foundItem.color.colorName}
                   </span>
                   <span className="text-sm font-bold text-blue-600">一致度 {score}%</span>
+                  {/* <span className="text-xl font-bold text-blue-600">一致度 {score}%</span> */}
                 </div>
+
+                {foundItem.imageUrl && (
+                          <div className="w-52 h-52  mb-6 overflow-hidden rounded border border-gray-300">
+                            <Image
+                              src={foundItem.imageUrl}
+                              alt="拾得物の写真"
+                              width={320}
+                              height={320}
+                              className="w-full h-full object-contain"
+                            />
+                          </div>
+                        )}
+
                 <p className="text-sm text-gray-700">
                   拾得場所: {foundItem.location.locationName}
                   {foundItem.locationDetail && `(${foundItem.locationDetail})`}

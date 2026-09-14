@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getCurrentUser } from '@/lib/session'
+import { saveUploadedImage } from '@/lib/upload'
 
 // max属性の計算を、日本時間(JST)に補正する
 function getLocalDateTimeString(): string {
@@ -59,6 +60,9 @@ export default async function NewFoundItemPage() {
       throw new Error('ログインが必要です')
      }
 
+    const imageFile = formData.get('image') as File | null
+    const imageUrl = await saveUploadedImage(imageFile)
+
     const foundItem = await prisma.foundItem.create({
         // found_itemsテーブルに新しい行を1件作成する
       data: {
@@ -73,6 +77,7 @@ export default async function NewFoundItemPage() {
         // schema.prisma で facilityId は Int? (任意)なので、
         // 指定しなければ自動的に NULL として保存される
         // これにより「まだどの施設にも届いていない」状態を表現している
+        imageUrl, 
       },
     })
 
@@ -156,6 +161,20 @@ export default async function NewFoundItemPage() {
             className="border border-gray-300 rounded px-3 py-2 text-sm"
           />
         </div>
+<div className="flex flex-col gap-1">
+  <label className="text-sm font-medium">
+    写真<span className="text-gray-400"/>
+  </label>
+  <input
+    name="image"
+    type="file"
+    accept="image/*"
+    className="text-sm border border-gray-300 rounded px-3 py-2 file:mr-3 file:px-3 file:py-1 file:rounded file:border-0 file:bg-blue-50 file:text-blue-700 file:text-sm file:font-medium hover:file:bg-blue-100"
+  />
+  <p className="text-xs text-gray-400 mt-1">
+    ※ 財布や鞄を開いた状態、中身が写った写真は登録しないようにしてください。
+  </p>
+</div>
 
         <div className="flex gap-3 mt-2">
           <button
