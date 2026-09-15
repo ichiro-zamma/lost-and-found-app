@@ -20,6 +20,11 @@ type Props = {
 export default async function FoundItemDetailPage({ params }: Props) {
   const { id } = await params
 
+   // URLのidが数字でなければ404ページを表示
+  if (!/^\d+$/.test(id)) {
+    notFound()
+  }
+
   const foundItem = await prisma.foundItem.findUnique({
     where: { id: Number(id) },
     include: {

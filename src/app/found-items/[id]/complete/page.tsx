@@ -12,6 +12,11 @@ export default async function FoundItemCompletePage({ params }: Props) {
   const { id } = await params
   // Promiseで渡ってきたparamsを待って、中身のidを取り出す
 
+   // URLのidが数字でなければ404ページを表示
+  if (!/^\d+$/.test(id)) {
+    notFound()
+  }
+
   const foundItem = await prisma.foundItem.findUnique({
     // found_itemsテーブルから、主キーで1件だけ検索する
     where: { id: Number(id) },

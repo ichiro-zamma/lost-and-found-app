@@ -25,6 +25,10 @@ export default async function LostItemDetailPage({ params }: Props) {
     // Propsからparamsだけを取り出して使う(分割代入)
   const { id } = await params
   // paramsはPromiseなのでawaitで中身を取り出す。idという文字列(例:"5")が手に入る
+     // URLのidが数字でなければ404ページを表示
+  if (!/^\d+$/.test(id)) {
+    notFound()
+  }
   const lostItem = await prisma.lostItem.findUnique({
      // lost_itemsテーブルから、主キーで1件だけ検索する
     where: { id: Number(id) },
