@@ -21,6 +21,7 @@ const DATE_PROXIMITY_DAYS = 3 // 日時が「近い」とみなす許容日数
 const MIN_DETAIL_LENGTH = 3   // 場所の詳細で部分一致を判定する際の最低文字数
 // 場所の詳細(自由記述)の部分一致判定で使う、最低文字数の基準
 // 「1文字でもヒットしてしまう」問題を防ぐために追加した定数
+//場所詳細は自由記述であり、1～2文字では偶然一致する可能性があるため、3文字以上の場合のみ部分一致として加点する。
 
 
 /**
@@ -37,6 +38,9 @@ export function calculateMatchScore(
   // ItemForScoring & { lostAt: Date }
   // "&" は「交差型」という書き方。「ItemForScoringの4項目」+「lostAtというDate型の項目」
   // の、両方を兼ね備えたデータ、という意味
+  // マッチングには日時も必要
+  // ただし、落とし物は「lostAt」、拾得物は「foundAt」と名前が異なるため、
+  // 共通のItemForScoringには入れず、それぞれに追加している
   foundItem: ItemForScoring & { foundAt: Date }
   // 第2引数: 拾得物のデータ。同様に「共通4項目」+「foundAt」を持つデータ
 ): number {
@@ -44,6 +48,7 @@ export function calculateMatchScore(
   let score = 0
   // スコアを計算していくための変数。0点からスタートし、条件を満たすたびに加算していく
   // const ではなく let なのは、後から値を書き換える(加算する)ため
+  //const は、一度代入した変数に、別の値を再代入できない
 
   // 種類の完全一致
   if (lostItem.categoryId === foundItem.categoryId) score += 30
@@ -74,9 +79,9 @@ export function calculateMatchScore(
     // ( )で囲んでいるのは、"||"(または)の判定をひとまとめにするため
     // 例: 落とし物"渋谷駅の改札口" / 拾得物"改札口" なら、
     //     "渋谷駅の改札口".includes("改札口") が true になり、この行全体がtrueになる
-
     //includes()は何をするメソッドか
     // 「ある文字列の中に、指定した文字列が含まれているかどうか」を、true/falseで返すメソッドです。
+    //「落とし物の場所詳細の中に、拾得物の場所詳細が入っている」または「拾得物の場所詳細の中に、落とし物の場所詳細が入っている」
   ) {
     score += 15
     // 上記の全条件を満たした場合のみ、15点加算

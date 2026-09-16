@@ -1,27 +1,30 @@
-services:
-  app:
-    build: .
-    container_name: graduation-project-app 
-    volumes:
-      - .:/app                      # ソースコードをマウント
-      - node_modules:/app/node_modules  # node_modules は名前付きボリュームで高速化
-    working_dir: /app
-    ports:
-      - "3000:3000"
+services:   # Dockerで起動するサービス(コンテナ)を定義する
+  app:      # アプリ用のコンテナ
+    build: .   # 現在のフォルダにあるDockerfileを使ってイメージを作る
+    container_name: graduation-project-app  # 作成するコンテナの名前
+    volumes:                 # ホスト(Mac)とコンテナのファイルを共有する設定
+      - .:/app                      # ソースコードをマウント# プロジェクトのフォルダをコンテナの/appにマウントする # → Macでファイルを変更するとコンテナ側にも反映される
+      - node_modules:/app/node_modules  # node_modules は名前付きボリュームで高速化 # → コンテナを作り直してもnode_modulesを再利用しやすくする
+      - ${SSH_AUTH_SOCK}:/ssh-agent # MacのSSH AgentをDockerコンテナから使えるようにする # → DockerからGitHubへSSH認証できるようにする  Docker更新後にSSH Agentの受け渡しが効かなくなった
+    environment:   # コンテナ内の環境変数を設定する
+      - SSH_AUTH_SOCK=/ssh-agent # SSHに「SSH Agentは/ssh-agentにある」と教える
+    working_dir: /app   # コンテナに入ったときの作業場所を/appにする
+    ports:   # Macとコンテナのポートを接続する
+      - "3000:3000"     # Macの3000番 → コンテナの3000番 # → ブラウザからlocalhost:3000でNext.jsにアクセスできる
     command: sleep infinity         # Dev Container 用に待機させる
     depends_on:
       - db                          # db を先に起動する
 
-  db:
-    image: postgres:18
-    container_name: graduation-project-db
-    environment:
+  db:  # PostgreSQL用のコンテナ
+    image: postgres:18    # PostgreSQL 18の公式イメージを使用する
+    container_name: graduation-project-db # DBコンテナの名前
+    environment:  # PostgreSQLの初期設定
       POSTGRES_USER: postgres       # 初回起動時に作られるユーザー
       POSTGRES_PASSWORD: postgres   # そのパスワード(ローカル開発専用)
       POSTGRES_DB: graduation_project   # 初回起動時に作られるデータベース名
     volumes:
       - db_data:/var/lib/postgresql  # データを永続化(18+ は /data を付けない)
 
-volumes:
-  node_modules:
-  db_data:
+volumes: # Dockerで使用する名前付きボリュームを定義する
+  node_modules: # node_modules用のボリューム
+  db_data: # PostgreSQLのデータ保存用ボリューム

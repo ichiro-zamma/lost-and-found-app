@@ -1,66 +1,93 @@
+//8テーブルの設計図
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
+//Prisma Clientを生成するための設定
 generator client {
   provider = "prisma-client"
+  //生成されたPrisma Clientをどこに置くか
   output   = "../src/generated/prisma"
 }
 
+//このPrisma Schemaが接続するDBはPostgreSQLです
+//なぜPrismaを使っている？
+//PostgreSQLを直接SQLで操作することもできますが、Prismaを使うことでTypeScriptから型安全にDB操作ができ、
+//テーブル間のリレーションもコード上で扱いやすくなるためです。
 datasource db {
   provider = "postgresql"
 }
 
 //値の範囲チェックをPrismaの標準機能(enum)で型安全に実装するため
-
+//なぜenumにしましたか？
+//RoleやItemStatusのように取り得る値が決まっているものなので、
+//Prismaのenumを利用して値を限定し、型安全に扱えるようにしました。
+//ユーザーの役割として使用できる値を限定している
 enum Role {
   USER  // 一般ユーザー(落とした人/拾った人兼用)
   ADMIN // 施設管理者
 }
 
+//落とし物・拾得物の現在の状態
 enum ItemStatus {
   UNMATCHED  // 未マッチング
   RETURNED   // 返却済み
 }
 
+//PostgreSQLのusersテーブルに対応するPrismaのモデル
+//idプログラム上でのフィールド名  Int整数型　 @id主キー   @default(autoincrement())自動的に番号を振る  　
+//@map("user_id")DB上のuser_idという名前にする
+//なぜPrismaとDBで名前を変えている？
+//idの方がPrismaコードでは扱いやすい
+//DBでは「何のIDなのか」が名前だけで分かるようにしたい
 model User {
   id           Int       @id @default(autoincrement()) @map("user_id")
-  name         String   @db.VarChar(50)
-  email        String    @unique @db.VarChar(255)
-  password     String    @db.VarChar(255)
-  role         Role      @default(USER)
-  facilityId   Int?      @map("facility_id")
-  facility     Facility? @relation(fields: [facilityId], references: [id])
-  createdAt    DateTime  @default(now()) @map("created_at")
-
+  name         String    @db.VarChar(50) //最大50文字
+  email        String    @unique @db.VarChar(255)//同じメールアドレスを複数ユーザーに登録できない 最大255文字
+  password     String    @db.VarChar(255) //ハッシュ化されたパスワードを保存するカラム
+  role         Role      @default(USER)　　//型 → Role enum  //初期値 → USER
+  facilityId   Int?      @map("facility_id") //Userが所属する施設のID
+  facility     Facility? @relation(fields: [facilityId], references: [id])　//そのIDに対応する「施設」  @relation＝「このIDと、この施設を関連付けます」
+  createdAt    DateTime  @default(now()) @map("created_at")　//自動的に登録日時がDBに記録
+  //users.createdAtは、現時点では画面上で利用していませんが、将来的な管理者向けの利用者一覧機能などに備えて、他のテーブルと統一的に記録するようにしています
+  
+  //このユーザーが登録した落とし物・拾得物（複数）
   lostItems  LostItem[]
   foundItems FoundItem[]
 
 //Prismaのモデル名(model User)は単数形・パスカルケースにする
 //DBのテーブル名(@@map("users"))は複数形・スネークケースにする
+//model UserはPrisma側で使用するモデル名で、@@map("users")によって、実際のPostgreSQLではusersというテーブル名に対応させています。
+//Prisma側とDB側で、それぞれ分かりやすい命名規則を使うため
+ @@map("users")
 
-  @@map("users")
+ //@map 1つのカラムの名前を変更  @@map テーブルそのものの名前を変更
 }
 
+//拾得物を預かる施設
 model Facility {
-  id           Int     @id @default(autoincrement()) @map("facility_id")
-  facilityName String  @map("facility_name") @db.VarChar(100)
-  address      String? @db.VarChar(200)
+  id           Int     @id @default(autoincrement()) @map("facility_id")// 施設ID：主キー・自動採番・DBではfacility_id
+  facilityName String  @map("facility_name") @db.VarChar(100)// 施設名：最大100文字・DBではfacility_name
+  address      String @db.VarChar(200)// 住所：最大200文字
 
-  users      User[]
-  foundItems FoundItem[]
+  users      User[]　　// この施設に所属するユーザー：1つの施設に複数人所属できる
+  foundItems FoundItem[]　// この施設に預けられている拾得物：1つの施設で複数管理できる
 
-  @@map("facilities")
+  @@map("facilities")　// PrismaのFacilityモデルをDBのfacilitiesテーブルに対応させる
 }
+//施設は登録するところを作っていない　　seedで初期値を決めている
 
+// 落とし物・拾得物が発生した「場所」を管理する
 model Location {
   id           Int    @id @default(autoincrement()) @map("location_id")
   locationName String @unique @map("location_name") @db.VarChar(50)
 
   lostItems  LostItem[]
+  // ↑ この場所で発生した落とし物
+  //  1つの場所に複数のLostItemを関連付けられる
   foundItems FoundItem[]
-
+  // ↑ この場所で発生した拾得物
   @@map("locations")
 }
 
