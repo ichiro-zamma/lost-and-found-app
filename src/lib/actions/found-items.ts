@@ -41,4 +41,7 @@ export async function assignFacility(foundItemId: number, formData: FormData) {
   revalidatePath('/found-items')
   //拾得物一覧ページのキャッシュも更新する
   // 施設を割り当てた結果を一覧ページにも反映させる
+
+  //キャッシュ = 「前回の表示結果を一時保存したもの」
+  //revalidatePath() = 「そのページの古い保存データを更新して、最新情報を反映させる」
 }

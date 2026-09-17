@@ -89,73 +89,136 @@ model Location {
   foundItems FoundItem[]
   // ↑ この場所で発生した拾得物
   @@map("locations")
+    // ↑ DBではlocationsというテーブル名にする
 }
 
+// 色を管理するテーブル
 model Color {
   id        Int    @id @default(autoincrement()) @map("color_id")
+  // ↑ 色ID：主キー・自動採番
   colorName String @unique @map("color_name") @db.VarChar(20)
+  // ↑ 色の名前：文字列・最大20文字
+  //   @unique：同じ色を重複登録できない
 
   lostItems  LostItem[]
+  // ↑ この色の落とし物
   foundItems FoundItem[]
+  // ↑ この色の拾得物
 
   @@map("colors")
+  // ↑ DBではcolorsというテーブル名にする
 }
 
+// 落とし物・拾得物の種類を管理するテーブル
 model Category {
   id           Int    @id @default(autoincrement()) @map("category_id")
   categoryName String @unique @map("category_name") @db.VarChar(30)
 
   lostItems  LostItem[]
+  // ↑ この種類の落とし物
   foundItems FoundItem[]
+  // ↑ この種類の拾得物
 
   @@map("categories")
+  // ↑ DBではcategoriesというテーブル名にする
 }
 
+// 落とした物を管理するテーブル
 model LostItem {
   id             Int        @id @default(autoincrement()) @map("lost_item_id")
+  // ↑ 落とし物ID：主キー・自動採番
   userId         Int        @map("user_id")
+   // ↑ 登録したユーザーのID
   user           User       @relation(fields: [userId], references: [id])
+  // ↑ userIdを使ってUserテーブルと関連付ける
+  //   fields：[LostItem側のuserId]
+  //   references：[User側のid]
+
   categoryId     Int        @map("category_id")
+   // ↑ 落とし物の種類ID
   category       Category   @relation(fields: [categoryId], references: [id])
+  // ↑ categoryIdを使ってCategoryテーブルと関連付ける
   colorId        Int        @map("color_id")
+  // ↑ 落とし物の色ID
   color          Color      @relation(fields: [colorId], references: [id])
+  // ↑ colorIdを使ってColorテーブルと関連付ける
   locationId     Int        @map("location_id")
+   // ↑ 落とした場所のID
   location       Location   @relation(fields: [locationId], references: [id])
+  // ↑ locationIdを使ってLocationテーブルと関連付ける
   locationDetail String?    @map("location_detail") @db.VarChar(100)
+  // ↑ 詳細な場所//   ?：入力しなくてもOK　//   最大100文字
   lostAt         DateTime   @map("lost_at")
+  // ↑ 実際に落とした日時　//   DBではlost_at
   secretInfo     String     @map("secret_info") @db.VarChar(200)
+  // ↑ 本人確認用の秘密情報　　 //   最大200文字
   imageUrl       String?    @map("image_url") @db.VarChar(255)
+  // ↑ 画像URL　//   ?：画像なしでもOK
   status         ItemStatus @default(UNMATCHED)
+  // ↑ 落とし物の現在の状態
+  //   UNMATCHED または RETURNED
+  //   初期状態はUNMATCHED
   createdAt      DateTime   @default(now()) @map("created_at")
+  // ↑ この落とし物をアプリに登録した日時
+  //   登録時に自動設定
 
   match Match?
+   // ↑ この落とし物に対応するMatch
+  //   ?：まだマッチしていない場合もある
+ //「Match（マッチ）」＝「落とし物と拾得物が同じものだと紐づいた状態」
 
   @@map("lost_items")
+
 }
 
+// 拾った物を管理するテーブル
 model FoundItem {
   id             Int        @id @default(autoincrement()) @map("found_item_id")
+  // ↑ 拾得物ID：主キー・自動採番
   userId         Int        @map("user_id")
+   // ↑ 登録したユーザーのID
   user           User       @relation(fields: [userId], references: [id])
+  // ↑ userIdを使ってUserと関連付ける
   categoryId     Int        @map("category_id")
+  // ↑ 拾得物の種類ID
   category       Category   @relation(fields: [categoryId], references: [id])
+   // ↑ categoryIdを使ってCategoryと関連付ける
   colorId        Int        @map("color_id")
+  // ↑ 拾得物の色ID
   color          Color      @relation(fields: [colorId], references: [id])
+  // ↑ colorIdを使ってColorと関連付ける
   locationId     Int        @map("location_id")
+   // ↑ 拾った場所のID
   location       Location   @relation(fields: [locationId], references: [id])
+  // ↑ locationIdを使ってLocationと関連付ける
   locationDetail String?    @map("location_detail") @db.VarChar(100)
+  // ↑ 詳細な場所：任意・最大100文字
   foundAt        DateTime   @map("found_at")
+  // ↑ 実際に拾った日時
   imageUrl       String?    @map("image_url") @db.VarChar(255)
+  // ↑ 画像URL：任意
   facilityId     Int?       @map("facility_id")
+  // ↑ 拾得物を預けた施設のID
+  //   ?：まだ施設に預けていない場合はNULL
   facility       Facility?  @relation(fields: [facilityId], references: [id])
+  // ↑ facilityIdを使ってFacilityと関連付ける
   status         ItemStatus @default(UNMATCHED)
+  // ↑ 拾得物の現在の状態
+  //   初期状態はUNMATCHED
   createdAt      DateTime   @default(now()) @map("created_at")
+  // ↑ 拾得物をアプリに登録した日時
 
   match Match?
+   // ↑ この拾得物に対応するMatch
+  //   まだマッチしていない場合もある
 
   @@map("found_items")
+  // ↑ DBではfound_itemsというテーブル名にする
 }
 
+
+
+// 落とし物と拾得物のマッチング結果を管理するテーブル
 model Match {
   id          Int       @id @default(autoincrement()) @map("match_id")
   lostItemId  Int       @unique @map("lost_item_id")
@@ -163,6 +226,8 @@ model Match {
   foundItemId Int       @unique @map("found_item_id")
   foundItem   FoundItem @relation(fields: [foundItemId], references: [id])
   matchedAt   DateTime  @default(now()) @map("matched_at")
+   // ↑ マッチングした日時
+  //   登録時に自動設定
 
   @@map("matches")
 }

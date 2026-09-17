@@ -4,6 +4,7 @@ export function formatDateTime(date: Date): string {
    // Date型の日時を受け取り、文字列(string)として返す関数
    // export：他のファイルからimportして使えるようにする
 
+   //Intl.DateTimeFormat＝地域に合わせた日時の表示形式を作る機能
    //指定したフォーマットで、日時を「月・日・時・分」のパーツ群に切り分ける
   const parts = new Intl.DateTimeFormat('ja-JP', {
     timeZone: 'Asia/Tokyo', // 日本時間で表示する
@@ -71,7 +72,6 @@ export function formatDateTime(date: Date): string {
 // DB(PostgreSQL)は、TIMESTAMP型の日時を**UTC(協定世界時)**として保存する、というのが一般的な設計
 // 画面に表示する時だけ、利用者の地域の時刻(今回なら日本時間、UTC+9)に変換する
 // 「保存」と「表示」の基準を分けることで、将来どの地域で使っても、時刻の基準がブレない、というのがメリット
-
 
 //DBでは日時をUTC(協定世界時)で保存し、画面表示時に日本時間(JST)へ変換する設計にしています。
 // これは、特定の地域のタイムゾーンに依存せず、時刻の基準を一意に保つための一般的な設計方針です。

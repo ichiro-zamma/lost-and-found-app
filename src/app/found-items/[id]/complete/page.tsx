@@ -6,6 +6,8 @@ import Link from 'next/link' // ページ遷移用リンク
 type Props = {
   params: Promise<{ id: string }>
 }
+// このページには params というデータが渡されます。
+// params の中には id が入っていて、そのIDは文字列です。
 
 export default async function FoundItemCompletePage({ params }: Props) {
     // 完了画面のServer Component本体

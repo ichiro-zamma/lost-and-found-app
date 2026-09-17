@@ -1,15 +1,29 @@
+//「DBを一度きれいにする → アプリで最初から必要なデータを入れ直す」
+
+// .env に書いてある環境変数を読み込む dotenv
+// DATABASE_URL などを使えるようにする
+// dotenv　 .env の内容を扱うライブラリ
+// config  設定を読み込むための機能
 import 'dotenv/config'
+// PostgreSQL用のPrismaアダプター
 import { PrismaPg } from '@prisma/adapter-pg'
+// PrismaでDBを操作するためのクライアント
 import { PrismaClient } from '@/generated/prisma/client'
+// パスワードをハッシュ化するためのライブラリ
 import bcrypt from 'bcryptjs'
 
+// PostgreSQLに接続するための設定 // process.env.DATABASE_URL：.envに設定したDB接続先 
+// !：DATABASE_URLは必ず存在するとTypeScriptに伝える
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
+// Prismaを使ってDBを操作できるようにする
 const prisma = new PrismaClient({ adapter })
 
 async function main() {
+  // 既存データを削除 // ======================================== 
+  // 子テーブル → 親テーブルの順番で削除する // 外部キーでつながっているため、親を先に消すとエラーになる場合がある
   // 既存データを削除(子テーブル → 親テーブルの順)
   //外部キー制約があるテーブルは、参照している側(子)から先に消さないとエラーになるためこの順番。
-  await prisma.match.deleteMany()
+  await prisma.match.deleteMany()// Matchを全部削除
   await prisma.lostItem.deleteMany()
   await prisma.foundItem.deleteMany()
   await prisma.user.deleteMany()
@@ -20,6 +34,8 @@ async function main() {
 
   //マスタデータの一括登録
   // マスタデータ: カテゴリ
+  // createMany()：複数のデータをまとめて登録する
+  //await 「DBの処理が終わってから次の処理に進みたいから await を付けている」
   await prisma.category.createMany({
     data: [
     { categoryName: '財布' },
@@ -47,6 +63,7 @@ async function main() {
 
  
   // マスタデータ: 色
+  // 色の選択肢をまとめて登録する
   await prisma.color.createMany({
     data: [
     { colorName: '黒' },
@@ -77,6 +94,7 @@ async function main() {
 })
 
   // マスタデータ: 場所(シチュエーションの大枠)
+  // 落とした場所・拾った場所の選択肢を登録する
   await prisma.location.createMany({
     data: [
       { locationName: '駅構内' },
@@ -91,20 +109,27 @@ async function main() {
     ],
   })
 
-// テストユーザー(認証機能実装前の動作確認用)
+// テストユーザー
+
+// userテーブルにユーザーを1件登録する
+// create()：1件のデータを登録する
 const testUser = await prisma.user.create({
   data: {
     name: '山田太郎',
     email: 'taro@example.com',
+    // パスワードをハッシュ化してからDBに保存する 
+    // 'password123' → ハッシュ値に変換される // 10：ハッシュ化の計算コスト
     password: await bcrypt.hash('password123', 10), // 本物のハッシュに変更
+    // このユーザーは一般ユーザー
     role: 'USER',
   },
 })
 
 // createMany() = マスタデータや施設など、まとめて登録したいとき
-// create() = 作ったデータのIDなどを、その後の処理で使いたいとき
+// create() = // → 1件登録するときに使う → 登録したデータのIDなどを後で使いたい場合にも便利
 
 // 施設データを登録
+// 渋谷駅の施設を1件登録 // 作成された施設の情報をshibuyaに保存する
 const shibuya = await prisma.facility.create({
   data: {
     facilityName: '渋谷駅忘れ物センター',
@@ -141,6 +166,7 @@ const shinagawa = await prisma.facility.create({
 })
 
 // 施設管理者を登録
+// 管理者を5人まとめて登録する
 await prisma.user.createMany({
   data: [
     {
@@ -181,16 +207,20 @@ await prisma.user.createMany({
   ],
 })
 
+// データ登録がすべて成功したことをターミナルに表示
 console.log('Seed data created successfully')
 }
 
 //main()の実行と、エラー処理
+// main()でエラーが発生した場合 
+// エラー内容を表示してプログラムを終了する
 main()
-  .catch((e) => {
-    console.error(e)
-    process.exit(1)
+  .catch((e) => { //main()でエラーが発生したら、ここで処理する eは発生したエラーの情報
+    console.error(e)//そのエラー内容をターミナルに表示します。
+    process.exit(1)//プログラムをエラー終了させる  0 → 正常終了 1 → エラー終了
   })
+  //finally は、成功しても失敗しても、最後に必ず実行する
   .finally(async () => {
-    await prisma.$disconnect()
-    //prisma.$disconnect()(DBとの接続を閉じる)
+    await prisma.$disconnect() //Prismaとデータベースとの接続を終了する
+    //もうDBを使わないので接続を閉じます
   })

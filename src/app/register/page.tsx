@@ -10,6 +10,7 @@ export default async function RegisterPage() {
   const facilities = await prisma.facility.findMany({ orderBy: { id: 'asc' } })
   //DBのfacilityテーブルから施設を全部取得する 
   // findMany()→ 複数のデータを取得 /
+  //orderBy → 並び順を指定する
   //orderBy: { id: 'asc' }→ idの小さい順に並べる 
   return <RegisterForm facilities={facilities} />
   //RegisterFormを表示する 

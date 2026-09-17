@@ -1,18 +1,38 @@
 //落とし物登録画面
-import { prisma } from '@/lib/prisma' // DB操作用の窓口(シングルトン)を持ってくる
+import { prisma } from '@/lib/prisma' // DB操作用の窓口(シングルトン)を持ってくる// → データベースを操作するために使う
 import { redirect } from 'next/navigation' // 処理後に別ページへ飛ばすための関数
 import Link from 'next/link'  // ページ遷移用のリンクコンポーネント
-import { getCurrentUser } from '@/lib/session'
-import { saveUploadedImage } from '@/lib/upload' //画像を保存するために作ったsaveUploadedImageという関数を入れている
+import { getCurrentUser } from '@/lib/session' // getCurrentUser → 現在ログインしているユーザーを取得する関数
+import { saveUploadedImage } from '@/lib/upload' //画像を保存するために作ったsaveUploadedImageという関数を入れている// → ユーザーが登録した画像を保存するときに使う
 
 // max属性の計算を、日本時間(JST)に補正する
+// → 日時入力欄の「これより先の日時は入力できない」という上限を日本時間に合わせる
 function getLocalDateTimeString(): string {
-  const now = new Date()
+  // function → 関数を作る
+// getLocalDateTimeString → 関数の名前
+// (): → この関数は何も受け取らない
+// : string → 文字列（string）を返す関数
+  const now = new Date()  //→ 現在の日時を取得
   const jstOffsetMs = 9 * 60 * 60 * 1000 // 日本時間は常にUTCより9時間進んでいる
+  // 9時間をミリ秒に変換
+  // 9 → 9時間
+  // 60 → 1時間 = 60分
+  // 60 → 1分 = 60秒
+  // 1000 → 1秒 = 1000ミリ秒
+  // 結果：32,400,000ミリ秒
   //「9時間」をミリ秒に変換する計算
   //なぜミリ秒にするの？//JavaScriptのDateでは、日時をミリ秒単位で扱うことが多いからです。　より細かい時間まで扱えるようにするため
   const jstTime = new Date(now.getTime() + jstOffsetMs)
+  // now.getTime() → 現在日時をミリ秒の数字に変換
+  // + jstOffsetMs → 9時間分のミリ秒を足す
+  // new Date(...) → 計算した数字を日時に戻す
+  // jstTime → 日本時間に9時間分補正した日時
   return jstTime.toISOString().slice(0, 16)
+   // toISOString() → 日時を文字列に変換
+  // 例：2026-09-17T00:20:00.000Z
+  // slice(0, 16) → 最初の16文字だけ取り出す
+  // 結果：2026-09-17T00:20
+  // return → この文字列を関数の呼び出し元に返す
 }
 
 // このページ自体がServer Component(asyncが付いているのでサーバー上でDBに直接アクセスできる)
@@ -20,10 +40,17 @@ export default async function NewLostItemPage() {
 
     //「このページを見るにはログインが必要」
     // ↓ ここに追加(ページ全体のログインチェック)
-    //pageUser → ページを見るためのログイン確認
+    //pageUser → ページを見るためのログイン確認 → ログインしているか確認する
   const pageUser = await getCurrentUser()
+   // getCurrentUser()
+  // → 現在ログインしているユーザーを取得する
+  // await
+  // → getCurrentUser()の処理が終わるまで待つ
   if (!pageUser) {
+    // pageUserが存在しないなら
+    // → ログインしていないなら
     redirect('/login')
+    // → ログインページへ移動させる
   }
 
   // マスタデータを取得(プルダウンの選択肢用)
@@ -44,6 +71,7 @@ export default async function NewLostItemPage() {
     // 引数のformDataには、ユーザーが入力したフォームの内容が全部入っている
     'use server'
     // この関数はサーバー上で実行される、というNext.jsへの宣言
+    //「この関数をフォームなどから呼び出せるServer Actionにする」
 
     const categoryId = Number(formData.get('categoryId'))
     // formDataから"categoryId"という名前で送られてきた値を取り出し、文字列→数値に変換
@@ -72,17 +100,12 @@ export default async function NewLostItemPage() {
   //max属性(フロント側) = 「利用者が、カレンダーUI上で未来日時をうっかり選べないようにする」入力補助
   //このコード(サーバー側) = 「万が一、max属性をすり抜けて未来日時が送られてきても、DBには絶対に保存させない」最終防衛ライン
 
-    // // TODO: 認証機能実装後、ログイン中のユーザーIDに置き換える
-    // // ↑ 後で直す必要がある箇所だと分かるようにした目印コメント
-    // const testUser = await prisma.user.findUniqueOrThrow({
-    //   where: { email: 'taro@example.com' },
-    // })
-    // // usersテーブルから、メールアドレスが taro@example.com の人を検索
-    // // findUniqueOrThrow: 見つからなければエラーを投げる(findUniqueとの違いはここ)
 
     //実際に落とし物を登録する瞬間にも、ログインしているか確認する
     //currentUser → 登録処理をする人を特定するためのログイン確認
     //安全のために必要　二重チェック＋登録者の特定
+    //getCurrentUser() → 今ログインしているユーザーを確認する
+    // currentUser→ 確認できたユーザーの情報を入れておく変数
     const currentUser = await getCurrentUser()
           if (!currentUser) {
       throw new Error('ログインが必要です')
@@ -117,14 +140,23 @@ export default async function NewLostItemPage() {
 
   }
 
+  //required ユーザーが入力し忘れないようにするための画面側のチェック
+  //スキーマは、「DBに保存するデータとして必須かどうかを決める」
   return (
+    // 画面全体の入れ物
     <div className="p-8 mx-auto max-w-xl">
-      <Link href="/lost-items" className="text-blue-600 hover:underline text-sm">
+       {/* // p-8：内側に余白
+    　　　　// mx-auto：左右中央寄せ
+    　　　　// max-w-xl：横幅を広げすぎない */}
+      <Link href="/lost-items"// クリックしたら落とし物一覧へ
+       className="text-blue-600 hover:underline text-sm"> 
         ← 落とし物一覧に戻る
       </Link>
 
       <h1 className="text-2xl font-bold mt-4 mb-6">落とし物を登録</h1>
 
+    {/* // フォーム
+     // action={createLostItem}：送信されたらcreateLostItemを実行 */}
       <form action={createLostItem} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium">種類 *</label>
@@ -134,10 +166,14 @@ export default async function NewLostItemPage() {
             className="border border-gray-300 rounded px-3 py-2 text-sm"
           >
             <option value="">選択してください</option>
+            {/* // 最初に表示される選択肢// value=""：値は空 */}
             {categories.map((category) => (
+              // categoriesに入っている種類を1つずつ取り出して
+              // <option>を作る
               <option key={category.id} value={category.id}>
-                {category.categoryName}
+                {category.categoryName} 
               </option>
+              // 画面に表示する種類名
             ))}
           </select>
         </div>
@@ -178,7 +214,7 @@ export default async function NewLostItemPage() {
           <label className="text-sm font-medium">紛失場所の詳細</label>
           <input
             name="locationDetail"
-            placeholder="例: 渋谷駅の改札口付近"
+            placeholder="例: 渋谷駅の改札口付近" // 入力前に表示する例
             className="border border-gray-300 rounded px-3 py-2 text-sm"
           />
         </div>
@@ -186,10 +222,10 @@ export default async function NewLostItemPage() {
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium">紛失日時 *</label>
           <input
-            name="lostAt"
-            type="datetime-local"
+            name="lostAt" // 送信時の名前
+            type="datetime-local" // 日付＋時間を入力する欄
             required
-            max={getLocalDateTimeString()}
+            max={getLocalDateTimeString()}   // 現在時刻より未来を選べないようにする
             className="border border-gray-300 rounded px-3 py-2 text-sm"
           />
         </div>
@@ -202,7 +238,7 @@ export default async function NewLostItemPage() {
             maxLength={200}
             placeholder="例: 財布の中に犬の写真が入っている"
             className="border border-gray-300 rounded px-3 py-2 text-sm"
-            rows={3}
+            rows={3}  // 3行分の高さ
           />
         </div>
 
@@ -213,9 +249,10 @@ export default async function NewLostItemPage() {
   </label>
   <input
     name="image"
-    type="file"
-    accept="image/*"
+    type="file" // ファイルを選択する入力欄
+    accept="image/*" // 画像ファイルだけ選択できる
     className="text-sm border border-gray-300 rounded px-3 py-2 file:mr-3 file:px-3 file:py-1 file:rounded file:border-0 file:bg-blue-50 file:text-blue-700 file:text-sm file:font-medium hover:file:bg-blue-100"
+     // ファイル選択ボタンの見た目を設定
   />
   <p className="text-xs text-gray-400 mt-1">
     ※ 財布や鞄を開いた状態、中身が写った写真は登録しないようにしてください。

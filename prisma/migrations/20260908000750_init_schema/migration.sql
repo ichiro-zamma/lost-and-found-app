@@ -4,6 +4,8 @@
   - You are about to drop the `Todo` table. If the table is not empty, all the data it contains will be lost.
 
 */
+-- データベースのテーブル構造を、いつ・どのように変更したかを記録したSQLファイル
+-- Enum（エナム）入れていい値をあらかじめ決めておく仕組み」
 -- CreateEnum
 CREATE TYPE "Role" AS ENUM ('U', 'A');
 
@@ -59,6 +61,8 @@ CREATE TABLE "categories" (
     CONSTRAINT "categories_pkey" PRIMARY KEY ("category_id")
 );
 
+-- TIMESTAMP(3)日時を保存するデータ型です。
+-- (3) は小数秒を3桁まで扱うという意味です。
 -- CreateTable
 CREATE TABLE "lost_items" (
     "lost_item_id" SERIAL NOT NULL,
@@ -67,7 +71,7 @@ CREATE TABLE "lost_items" (
     "color_id" INTEGER NOT NULL,
     "location_id" INTEGER NOT NULL,
     "location_detail" VARCHAR(100),
-    "lost_at" TIMESTAMP(3) NOT NULL,
+    "lost_at" TIMESTAMP(3) NOT NULL,    
     "secret_info" VARCHAR(200) NOT NULL,
     "status" "ItemStatus" NOT NULL DEFAULT 'U',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,

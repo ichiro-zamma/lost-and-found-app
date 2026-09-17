@@ -1,3 +1,5 @@
+//アップロードされた画像を保存する関数
+//「アップロードされた画像をpublic/uploadsに保存して、その画像がどこにあるかをDBに教えるためのパスを返す関数」
 import { writeFile } from 'fs/promises'
 // ファイルを書き込むための機能を読み込む
 import path from 'path'

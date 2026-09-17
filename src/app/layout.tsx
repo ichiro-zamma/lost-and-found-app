@@ -24,7 +24,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="ja" // ページの言語を日本語にする
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-       // 読み込んだフォントを適用
+       // 読み込んだフォントを適用Geist Sans → 普通の文字用　Geist Mono → コードなどの等幅文字用
       // h-full = 高さを画面いっぱいにする
       // antialiased = 文字をなめらかに表示する
     >

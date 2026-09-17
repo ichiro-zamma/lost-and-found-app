@@ -6,7 +6,7 @@ import Link from 'next/link' // ページ遷移用リンク
 import { formatDateTime } from '@/lib/format' // 日時整形関数
 import { STATUS_LABEL } from '@/lib/labels'//日本語の文字に変換
 import { confirmReturn } from '@/lib/actions/matches'//「確定・返却」ボタンを追加
-import { getCurrentUser } from '@/lib/session'
+import { getCurrentUser } from '@/lib/session'//ログイン
 import Image from 'next/image'//Next.jsの画像表示用のImageを使えるようにするため　Imageを使うことで画像の最適化などをNext.js側に任せられる
 
 // const STATUS_LABEL: Record<string, string> = {
@@ -25,10 +25,12 @@ export default async function LostItemDetailPage({ params }: Props) {
     // Propsからparamsだけを取り出して使う(分割代入)
   const { id } = await params
   // paramsはPromiseなのでawaitで中身を取り出す。idという文字列(例:"5")が手に入る
-     // URLのidが数字でなければ404ページを表示
+     
+  // URLのidが数字でなければ404ページを表示
   if (!/^\d+$/.test(id)) {
     notFound()
   }
+
   const lostItem = await prisma.lostItem.findUnique({
      // lost_itemsテーブルから、主キーで1件だけ検索する
     where: { id: Number(id) },
@@ -46,6 +48,7 @@ export default async function LostItemDetailPage({ params }: Props) {
     // もし該当するデータが無かった(findUniqueがnullを返した)場合、404ページを表示して処理を止める
 
   const currentUser = await getCurrentUser()
+  // 現在ログインしているユーザーを取得
 
   // マッチング候補: まだ返却済みでない拾得物を全件取得し、その場でスコアを計算する
   const foundItems = await prisma.foundItem.findMany({
@@ -93,10 +96,17 @@ export default async function LostItemDetailPage({ params }: Props) {
   <div className="w-80 h-80 mx-auto mb-6 overflow-hidden rounded border border-gray-300">
     <Image
       src={lostItem.imageUrl}
+      // 表示する画像の場所(URL)
       alt="落とし物の写真"
+      // 画像が表示できない場合などの説明文
       width={320}
+      // 画像の幅
       height={320}
+      // 画像の高さ
       className="w-full h-full object-contain"
+       // w-full：親の横幅いっぱい
+       // h-full：親の高さいっぱい
+       // object-contain：画像全体が見えるように表示
     />
   </div>
 )}
@@ -189,9 +199,19 @@ export default async function LostItemDetailPage({ params }: Props) {
                   保管施設: {foundItem.facility ? foundItem.facility.facilityName : '未定(まだ施設に届いていません)'}
                 </p>
                 {currentUser?.role === 'ADMIN' && foundItem.facility && (
+                   // 現在ログインしている人がADMIN（管理者）で、
+                   // かつ拾得物を預かっている施設がある場合だけ、以下を表示する
                   <form action={confirmReturn} className="mt-3">
+                    {/* // フォームを作る
+                    // 送信すると confirmReturn というServer Actionを実行する
+                    // mt-3：フォームの上に少し余白をつける */}
                     <input type="hidden" name="lostItemId" value={lostItem.id} />
+                    {/* // hidden：画面には表示しない
+                        // name="lostItemId"：送るデータの名前は「lostItemId」
+                        // value={lostItem.id}：その中身は、今見ている落とし物のID */}
                     <input type="hidden" name="foundItemId" value={foundItem.id} />
+                   {/* confirmReturn に、
+                     「どの落とし物と、どの拾得物を返却済みにするの？」を伝えるためIDを送ってる */}
                     <button
                       type="submit"
                       className="bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700"
@@ -199,6 +219,7 @@ export default async function LostItemDetailPage({ params }: Props) {
                       本人確認完了・返却済みにする
                     </button>
                   </form>
+                  // type="submit" ＝ 「このボタンを押したらフォームを送信するボタンですよ」
                 )}
               </li>
             ))}

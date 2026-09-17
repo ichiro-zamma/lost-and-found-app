@@ -7,4 +7,5 @@ export default function LoginPage() {
   //LoginFormを画面に表示する 
   //LoginForm.tsxに書いた 
   //「メールアドレス・パスワード入力欄」 // 「ログインボタン」 // などが表示される
+  //「ページを表示する処理」と「ログインフォームの処理」を分けている
 }

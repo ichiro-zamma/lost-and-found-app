@@ -1,4 +1,4 @@
-//ログインしている人をCookieで覚えておき、あとから誰がログインしているのか確認するためのファイル
+//ログインしている人をCookieで覚えておき、あとから誰がログインしているのか確認するためのファイル　　　　　
 //Cookie = ブラウザに保存しておく「小さなメモ」
 import { cookies } from 'next/headers'// Next.jsでCookieを読み書きするための機能を読み込む
 import crypto from 'crypto'// 署名を作るための暗号化機能を読み込む
@@ -8,6 +8,7 @@ const COOKIE_NAME = 'session'
 // Cookieに付ける名前を「session」とする 
 // この名前でログイン状態を保存・取得する
 
+//署名はこのデータは、秘密の鍵を持っているサーバーが作ったものですよ
 // userIdに「署名」を付けて、改ざんできない文字列にする
 function sign(userId: number): string {
 //userIdを受け取って、署名付きの文字列を返す関数
@@ -18,6 +19,7 @@ function sign(userId: number): string {
   return `${userId}.${signature}`
   // 「ユーザーID.署名」という形で返す // 例：8.abcd1234...
 }
+
 
 // 署名付き文字列を検証し、正しければuserIdを取り出す(改ざんされていたらnullを返す)
 function verify(value: string): number | null {
@@ -98,3 +100,4 @@ export async function getCurrentUser() {
 
 // getCurrentUser()
 // → 今ログインしている人を取得する
+//クッキーに入っているセッション情報を使って、今ログインしているユーザーを特定する

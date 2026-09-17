@@ -16,6 +16,7 @@ import { Prisma } from '@/generated/prisma/client'
 export type RegisterState = { error?: string } | undefined
 // 会員登録処理の結果の型  errorがあればエラーメッセージを入れる  エラーがなければundefined
 
+//会員登録の処理を実行する関数 (フォームの入力を受け取って、サーバー側で会員登録処理をする関数)
 export async function register(
   prevState: RegisterState,
   formData: FormData
@@ -25,7 +26,7 @@ export async function register(
     // formData：フォームから送られてきた入力内容 
     // Promise<RegisterState>：最終的にRegisterStateを返す
   const name = formData.get('name') as string
-  // フォームの「name」という項目から名前を取得する
+  // フォームの「name」という項目から名前を取得する　　　　as string　（name → 文字列として扱う）
   const email = formData.get('email') as string
   // フォームの「email」という項目からメールアドレスを取得する
   const password = formData.get('password') as string
@@ -83,7 +84,7 @@ export async function register(
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
         // Prismaが発生させた既知のエラーで、 
         // エラーコードがP2002の場合か確認する 
-        // P2002は一意制約違反などで発生する 
+        // P2002は重複、一意制約違反などで発生する 
         // 今回は同じメールアドレスが登録されている場合など
       return { error: 'このメールアドレスは既に使用されています' }
       // ユーザーにエラーメッセージを返す
@@ -94,17 +95,23 @@ export async function register(
 
   redirect('/login')
   // ユーザー登録が成功したらログイン画面へ移動する
+  //redirect は 別のページへ移動させるための処理
 }
 
 export type LoginState = { error?: string } | undefined
 // ログイン処理の結果の型 
 // エラーがあればerrorにメッセージを入れる
+//ログイン処理の結果は、エラーメッセージを持つ形か、何もない状態のどちらか
 
+
+//入力されたメールアドレスとパスワードを確認して、正しければログイン状態にする処理
 export async function login(
   prevState: LoginState,
   formData: FormData
 ): Promise<LoginState> {
 // ログインを行うServer Action 
+// prevState：前回の処理でその結果を受け取れるようにしている　　画面の処理でuseActionState から渡される前提の引数だから、関数の形として置いている
+// formData：フォームから送られてきた入力内容
 // フォームからメールアドレスとパスワードを受け取る
   const email = formData.get('email') as string
   // フォームからメールアドレスを取得する

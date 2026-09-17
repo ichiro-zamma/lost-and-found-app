@@ -108,15 +108,32 @@ export default async function FoundItemDetailPage({ params }: Props) {
         </tbody>
       </table>
      {currentUser?.role === 'ADMIN' && !foundItem.facility && (
+      // 現在のユーザーがADMIN（管理者）で、
+      // まだ拾得物に保管施設が設定されていない場合だけ、以下を表示する
         <div className="mt-6 border-t pt-4">
           <h2 className="text-lg font-semibold mb-3">保管施設を設定</h2>
           <form action={assignFacility.bind(null, foundItem.id)} className="flex gap-2">
+            {/* // フォーム
+                // 送信すると assignFacility を実行する
+                // foundItem.id を assignFacility に渡す
+                // flex：中の要素を横並びにする
+                // gap-2：要素同士に少し間隔をあける */}
             <select name="facilityId" required className="border border-gray-300 rounded px-3 py-2 text-sm">
+               {/* // 施設を選択するプルダウン
+                   // name="facilityId"：選択した施設IDをfacilityIdという名前で送る
+                   // required：施設を必ず選択する
+                   // border：枠線
+                   // rounded：角を丸くする */}
               <option value="">施設を選択</option>
               {facilities.map((facility) => (
+                // facilitiesに入っている施設を1件ずつ取り出す
+                // 施設の数だけ<option>を作る
                 <option key={facility.id} value={facility.id}>
                   {facility.facilityName}
                 </option>
+                // key={facility.id}：各選択肢を区別するためのID
+                // value={facility.id}：選択したときに送る施設ID
+                // facility.facilityName：画面に施設名を表示する
               ))}
             </select>
             <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">
