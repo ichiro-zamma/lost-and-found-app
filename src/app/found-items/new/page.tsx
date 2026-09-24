@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getCurrentUser } from '@/lib/session'
 import { saveUploadedImage } from '@/lib/upload'
+import { getStringField, getOptionalStringField } from '@/lib/formData'
 
 // max属性の計算を、日本時間(JST)に補正する
 function getLocalDateTimeString(): string {
@@ -33,9 +34,8 @@ export default async function NewFoundItemPage() {
     const categoryId = Number(formData.get('categoryId'))
     const colorId = Number(formData.get('colorId'))
     const locationId = Number(formData.get('locationId'))
-    const locationDetail = formData.get('locationDetail') as string
-    const foundAtRaw = formData.get('foundAt') as string
-
+   const locationDetail = getOptionalStringField(formData, 'locationDetail')
+   const foundAtRaw = getStringField(formData, 'foundAt')
     // datetime-local は「何月何日の何時何分」という情報しか送らず、「それがどこの国の時間か」は送らない
     //datetime-local の入力値にはタイムゾーン情報がない → サーバーがUTC環境 → 日本時間として扱いたいなら +09:00 を付ける。
     //UTCより9時間進んだ地域

@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation' // 処理後に別ページへ飛ば�
 import Link from 'next/link'  // ページ遷移用のリンクコンポーネント
 import { getCurrentUser } from '@/lib/session' // getCurrentUser → 現在ログインしているユーザーを取得する関数
 import { saveUploadedImage } from '@/lib/upload' //画像を保存するために作ったsaveUploadedImageという関数を入れている// → ユーザーが登録した画像を保存するときに使う
+import { getStringField, getOptionalStringField } from '@/lib/formData'
 
 // max属性の計算を、日本時間(JST)に補正する
 // → 日時入力欄の「これより先の日時は入力できない」という上限を日本時間に合わせる
@@ -79,13 +80,13 @@ export default async function NewLostItemPage() {
         // 同様に色のIDを取り出し数値化
     const locationId = Number(formData.get('locationId'))
     // 同様に場所のIDを取り出し数値化
-    const locationDetail = formData.get('locationDetail') as string
+    const locationDetail = getOptionalStringField(formData, 'locationDetail')
     // 場所の詳細(自由記述)を文字列として取り出す
     // "as string" はTypeScriptへの型の指定(FormDataの値は本来 string | File | null の可能性があるため)
     //FormDataは、<form>タグで送信された内容を、ひとまとめに管理するJavaScriptの仕組みです。
-    const lostAtRaw = formData.get('lostAt') as string
+    const lostAtRaw = getStringField(formData, 'lostAt')
     // 紛失日時を、まだ文字列のまま取り出す("Raw"=加工前、という意味を込めた変数名)
-    const secretInfo = formData.get('secretInfo') as string
+    const secretInfo = getStringField(formData, 'secretInfo')
     // 秘密情報を文字列として取り出す
 
     // "2026-09-10T15:29" という文字列に、日本時間であることを明示する "+09:00" を追加してからDateに変換する

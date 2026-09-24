@@ -12,6 +12,8 @@ import { createSession, destroySession } from '@/lib/session'
 // ログイン状態を作成・削除するための関数を読み込む
 import { Prisma } from '@/generated/prisma/client'
 // Prismaが発生させるエラーを判定するために読み込む
+import { getStringField, getOptionalStringField } from '@/lib/formData'
+// 「フォームの値を文字列として取得する関数」を読み込む
 
 export type RegisterState = { error?: string } | undefined
 // 会員登録処理の結果の型  errorがあればエラーメッセージを入れる  エラーがなければundefined
@@ -25,17 +27,11 @@ export async function register(
     // prevState：前回の処理結果 
     // formData：フォームから送られてきた入力内容 
     // Promise<RegisterState>：最終的にRegisterStateを返す
-  const name = formData.get('name') as string
-  // フォームの「name」という項目から名前を取得する　　　　as string　（name → 文字列として扱う）
-  const email = formData.get('email') as string
-  // フォームの「email」という項目からメールアドレスを取得する
-  const password = formData.get('password') as string
-  // フォームの「password」という項目からパスワードを取得する
-  const adminCode = formData.get('adminCode') as string
-  // フォームの「adminCode」という項目から管理者コードを取得する
-  const facilityIdRaw = formData.get('facilityId') as string
-  // フォームの「facilityId」という項目から施設IDを取得する 
-  // この時点では文字列として取得される
+const name = getStringField(formData, 'name')
+const email = getStringField(formData, 'email')
+const password = getStringField(formData, 'password')
+const adminCode = getOptionalStringField(formData, 'adminCode')
+const facilityIdRaw = getOptionalStringField(formData, 'facilityId')
 
   // 管理者コードが「何か入力されている」かどうかを先に判定
   const hasAdminCodeInput = adminCode.length > 0
