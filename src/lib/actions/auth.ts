@@ -64,9 +64,10 @@ export async function register(
   // 10はハッシュ計算のコスト（ソルトラウンド）を指定している
   // 計算を意図的に重くすることで、パスワードの総当たり攻撃をされにくくする
 
+  let newUser
   try {
     // DBへの登録処理でエラーが起きる可能性があるためtryで囲む
-    await prisma.user.create({
+       newUser =await prisma.user.create({
         // Prismaを使ってusersテーブルに新しいユーザーを登録する
       data: {
         name,// 入力された名前を保存する
@@ -93,9 +94,13 @@ export async function register(
     // 想定していないエラーなら、そのままエラーを発生させる
   }
 
-  redirect('/login')
-  // ユーザー登録が成功したらログイン画面へ移動する
-  //redirect は 別のページへ移動させるための処理
+ 
+// 登録直後に、そのままログイン状態にする(再度ログイン画面で入力させない)
+await createSession(newUser.id)
+
+redirect('/')
+
+  
 }
 
 export type LoginState = { error?: string } | undefined
