@@ -8,6 +8,7 @@ import { STATUS_LABEL } from '@/lib/labels'//日本語の文字に変換
 import { confirmReturn } from '@/lib/actions/matches'//「確定・返却」ボタンを追加
 import { getCurrentUser } from '@/lib/session'//ログイン
 import Image from 'next/image'//Next.jsの画像表示用のImageを使えるようにするため　Imageを使うことで画像の最適化などをNext.js側に任せられる
+import { ConfirmReturnButton } from '@/app/lost-items/ConfirmReturnButton'
 
 // const STATUS_LABEL: Record<string, string> = {
 //      // ステータスのenum値を日本語に変換する辞書
@@ -198,29 +199,11 @@ export default async function LostItemDetailPage({ params }: Props) {
                 <p className="text-sm text-gray-700">
                   保管施設: {foundItem.facility ? foundItem.facility.facilityName : '未定(まだ施設に届いていません)'}
                 </p>
+
                 {currentUser?.role === 'ADMIN' && foundItem.facility && (
-                   // 現在ログインしている人がADMIN（管理者）で、
-                   // かつ拾得物を預かっている施設がある場合だけ、以下を表示する
-                  <form action={confirmReturn} className="mt-3">
-                    {/* // フォームを作る
-                    // 送信すると confirmReturn というServer Actionを実行する
-                    // mt-3：フォームの上に少し余白をつける */}
-                    <input type="hidden" name="lostItemId" value={lostItem.id} />
-                    {/* // hidden：画面には表示しない
-                        // name="lostItemId"：送るデータの名前は「lostItemId」
-                        // value={lostItem.id}：その中身は、今見ている落とし物のID */}
-                    <input type="hidden" name="foundItemId" value={foundItem.id} />
-                   {/* confirmReturn に、
-                     「どの落とし物と、どの拾得物を返却済みにするの？」を伝えるためIDを送ってる */}
-                    <button
-                      type="submit"
-                      className="bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700"
-                    >
-                      本人確認完了・返却済みにする
-                    </button>
-                  </form>
-                  // type="submit" ＝ 「このボタンを押したらフォームを送信するボタンですよ」
+                   <ConfirmReturnButton lostItemId={lostItem.id} foundItemId={foundItem.id} />
                 )}
+
               </li>
             ))}
           </ul>
